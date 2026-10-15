@@ -9,7 +9,7 @@ type Layouts = Record<
     LazyExoticComponent<<T extends CommonProps>(props: T) => JSX.Element>
 >
 
-const currentLayoutType: LayoutType = 'side'
+const currentLayoutType: LayoutType = 'simple'
 
 const layouts: Layouts = {
     simple: lazy(() => import('./Simple')),

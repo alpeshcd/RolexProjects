@@ -9,18 +9,15 @@ interface SimpleProps extends CommonProps {
 
 const Simple = ({ children, content, ...rest }: SimpleProps) => {
     return (
-        <div className="h-full bg-white dark:bg-gray-800">
-            <Container className="flex flex-col flex-auto items-center justify-center min-w-0 h-full">
-                <div className="min-w-[320px] md:min-w-[400px] max-w-[400px]">
-                    <div>
-                        {content}
-                        {children
-                            ? cloneElement(children as ReactElement, {
-                                  contentClassName: 'text-center',
-                                  ...rest,
-                              })
-                            : null}
-                    </div>
+        <div className="min-h-screen w-full bg-gradient-to-b from-slate-100 via-[#e9edf3] to-slate-200 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex flex-col justify-center items-center py-10 px-4">
+            <Container className="flex flex-col flex-auto items-center justify-center min-w-0 w-full max-w-[440px]">
+                <div className="w-full">
+                    {content}
+                    {children
+                        ? cloneElement(children as ReactElement, {
+                              ...rest,
+                          })
+                        : null}
                 </div>
             </Container>
         </div>

@@ -12,8 +12,8 @@ const Layout = ({ children }: CommonProps) => {
     const { authenticated } = useAuth()
     const location = useLocation()
 
-    // Render PostLoginLayout only when user is genuinely authenticated
-    const showRolexShell = authenticated
+    // Render Rolex shell (Sidebar + Header) for /verify and authenticated dashboard
+    const showRolexShell = authenticated || location.pathname.startsWith('/verify')
 
     return (
         <Suspense

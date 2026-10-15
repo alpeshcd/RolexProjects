@@ -7,7 +7,7 @@ import Alert from '@/components/ui/Alert'
 import Tag from '@/components/ui/Tag'
 import { FormItem } from '@/components/ui/Form'
 import { useAuth } from '@/auth'
-import { HiShieldCheck, HiOutlineArrowLeft, HiOutlineRefresh } from 'react-icons/hi'
+import { HiOutlineRefresh, HiShieldCheck } from 'react-icons/hi'
 import { RiLockPasswordLine } from 'react-icons/ri'
 
 const Verify2FA = () => {
@@ -37,7 +37,7 @@ const Verify2FA = () => {
 
         const cleanCode = otpCode.trim()
         if (!cleanCode) {
-            setError('Please enter the 6-digit code from your Authenticator app.')
+            setError('Please enter the 6-digit OTP code from your Authenticator app.')
             return
         }
 
@@ -52,7 +52,7 @@ const Verify2FA = () => {
         } catch (err: any) {
             setError(
                 err?.message ||
-                    'Invalid OTP code. Please enter code from your Authenticator app (test code: 123456).',
+                    'Invalid OTP code. Please enter the current code from your Authenticator app (test code: 123456).',
             )
         } finally {
             setLoading(false)
@@ -65,118 +65,142 @@ const Verify2FA = () => {
     }
 
     return (
-        <div className="flex-1 w-full min-h-[calc(100vh-64px)] flex flex-col justify-center items-center p-4 sm:p-6 bg-gradient-to-br from-slate-50 via-teal-50/20 to-slate-100 dark:from-gray-900 dark:to-gray-800">
-            {/* Header Navigation Row */}
-            <div className="w-full max-w-lg flex items-center justify-between mb-4 px-1">
-                <button
-                    onClick={() => navigate('/sign-in')}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-teal-700 transition-colors"
-                >
-                    <HiOutlineArrowLeft className="text-sm" /> Back to Sign In
-                </button>
-                <div className="flex items-center gap-2">
-                    <Tag className="bg-teal-50 border-teal-200 text-teal-700 text-xs font-semibold">
-                        2FA Two-Factor Security
-                    </Tag>
+        <div className="flex-1 w-full p-4 sm:p-6 bg-slate-50/70 dark:bg-gray-900 min-h-[calc(100vh-64px)] flex flex-col justify-between">
+            <div>
+                {/* Header Breadcrumbs Row - Exactly matching user screenshot */}
+                <div className="flex items-center justify-between mb-6 pb-2 border-b border-gray-200/80 dark:border-gray-800">
+                    <div className="flex items-center gap-2">
+                        <h1 className="text-sm font-black tracking-wide text-gray-800 dark:text-gray-100 uppercase">
+                            VERIFY
+                        </h1>
+                        <Tag className="bg-teal-50 border-teal-200 text-teal-700 font-bold text-[10px]">
+                            2FA ACTIVE
+                        </Tag>
+                    </div>
+                    <div className="text-xs text-gray-500 font-medium">
+                        <span className="text-gray-400">Home</span>
+                        <span className="mx-1.5 text-gray-400">/</span>
+                        <span className="text-teal-700 dark:text-teal-400 font-semibold">Verify</span>
+                    </div>
+                </div>
+
+                {/* Centered Verify 2FA Card - Modern & Sober */}
+                <div className="w-full flex justify-center py-6 sm:py-10">
+                    <Card
+                        className="w-full max-w-[560px] bg-white dark:bg-gray-800 shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-200/80 dark:border-gray-700/80 rounded-2xl overflow-hidden"
+                        bodyClass="p-0"
+                    >
+                        {/* Card Header matching screenshot title */}
+                        <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700/80 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <HiShieldCheck className="text-teal-600 text-lg" />
+                                <h3 className="text-sm font-bold text-gray-800 dark:text-gray-100">
+                                    Verify 2FA
+                                </h3>
+                            </div>
+                            <span className="text-[11px] font-mono font-bold text-teal-600 dark:text-teal-400">
+                                {targetUser}
+                            </span>
+                        </div>
+
+                        {/* Card Body */}
+                        <div className="p-6 sm:p-8">
+                            {/* Explanatory Text matching screenshot */}
+                            <div className="text-center mb-6">
+                                <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-300 max-w-md mx-auto leading-relaxed">
+                                    Please enter the <strong className="text-gray-900 dark:text-white font-bold">OTP</strong> generated on your Authenticator App.
+                                </p>
+                                <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-1">
+                                    Ensure you submit the current one because it refreshes every 30 seconds.
+                                </p>
+
+                                {/* Live 30s Countdown Pill */}
+                                <div className="inline-flex items-center gap-1.5 px-3 py-1 mt-3 rounded-full bg-slate-100 dark:bg-gray-700/60 text-slate-600 dark:text-gray-300 text-xs font-medium border border-slate-200/80 dark:border-gray-600/60">
+                                    <HiOutlineRefresh
+                                        className="text-teal-600 dark:text-teal-400 animate-spin text-xs"
+                                        style={{ animationDuration: '3s' }}
+                                    />
+                                    <span>Code refreshes in:</span>
+                                    <span className="font-bold text-teal-600 dark:text-teal-400 font-mono">
+                                        {secondsLeft}s
+                                    </span>
+                                </div>
+                            </div>
+
+                            {error && (
+                                <Alert showIcon className="mb-5 text-xs" type="danger">
+                                    {error}
+                                </Alert>
+                            )}
+
+                            {/* Verification Form */}
+                            <form onSubmit={handleSubmit} className="space-y-4 max-w-sm mx-auto">
+                                <FormItem
+                                    label="One Time Password:"
+                                    className="mb-3 text-center"
+                                >
+                                    <Input
+                                        size="lg"
+                                        type="text"
+                                        inputMode="numeric"
+                                        maxLength={6}
+                                        autoFocus
+                                        value={otpCode}
+                                        onChange={(e) => {
+                                            const val = e.target.value.replace(/\D/g, '')
+                                            setOtpCode(val)
+                                            if (val.length === 6) {
+                                                setError(null)
+                                            }
+                                        }}
+                                        placeholder="Enter 6-digit OTP"
+                                        prefix={
+                                            <RiLockPasswordLine className="text-lg text-teal-600 dark:text-teal-400 ml-1" />
+                                        }
+                                        className="text-center font-mono tracking-widest text-lg font-bold !bg-slate-50 focus:!bg-white dark:!bg-gray-900/80"
+                                    />
+                                </FormItem>
+
+                                {/* Auto-fill helper link */}
+                                <div className="flex items-center justify-between text-xs text-gray-400 pb-1">
+                                    <span>Testing account?</span>
+                                    <button
+                                        type="button"
+                                        onClick={fillDemoOtp}
+                                        className="font-semibold text-teal-600 dark:text-teal-400 hover:underline transition-colors"
+                                    >
+                                        Auto-fill test code (123456)
+                                    </button>
+                                </div>
+
+                                {/* Login Action Button matching screenshot */}
+                                <Button
+                                    block
+                                    size="lg"
+                                    variant="solid"
+                                    type="submit"
+                                    loading={loading}
+                                    className="!bg-[#008080] hover:!bg-[#006e6e] active:!bg-[#005a5a] text-white font-bold shadow-md shadow-teal-700/20 transition-all !h-11 text-sm tracking-wide"
+                                >
+                                    {loading ? 'Verifying OTP...' : 'Login'}
+                                </Button>
+                            </form>
+                        </div>
+
+                        {/* Footer info bar */}
+                        <div className="px-6 py-3 bg-slate-50/70 dark:bg-gray-800/80 border-t border-gray-100 dark:border-gray-700/80 flex items-center justify-between text-[11px] text-gray-400">
+                            <span>Rolex Security Protocol</span>
+                            <button
+                                type="button"
+                                onClick={() => navigate('/sign-in')}
+                                className="text-teal-600 dark:text-teal-400 hover:underline font-semibold"
+                            >
+                                Back to Sign In
+                            </button>
+                        </div>
+                    </Card>
                 </div>
             </div>
-
-            {/* Ecme Theme Card Component */}
-            <Card
-                className="w-full max-w-lg shadow-xl border-gray-200/80 dark:border-gray-700 backdrop-blur-sm rounded-2xl overflow-hidden"
-                bodyClass="p-6 sm:p-8"
-            >
-                {/* Modern Security Header */}
-                <div className="text-center mb-6">
-                    <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-tr from-teal-600 to-cyan-500 flex items-center justify-center text-white shadow-lg shadow-teal-500/20">
-                        <HiShieldCheck className="text-3xl" />
-                    </div>
-                    <h3 className="text-xl font-black text-gray-800 dark:text-gray-100">
-                        Two-Factor Authentication
-                    </h3>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-sm mx-auto">
-                        Enter the 6-digit code generated by your Authenticator app for account{' '}
-                        <strong className="text-teal-700 dark:text-teal-400 font-bold">
-                            {targetUser}
-                        </strong>
-                        .
-                    </p>
-                </div>
-
-                {/* 30s Countdown Pill */}
-                <div className="flex items-center justify-center gap-2 mb-6">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 text-xs font-medium border border-slate-200 dark:border-gray-700">
-                        <HiOutlineRefresh
-                            className="text-teal-600 animate-spin text-sm"
-                            style={{ animationDuration: '3s' }}
-                        />
-                        <span>Code refreshes in:</span>
-                        <span className="font-bold text-teal-600 font-mono">
-                            {secondsLeft}s
-                        </span>
-                    </div>
-                </div>
-
-                {error && (
-                    <Alert showIcon className="mb-6 text-xs" type="danger">
-                        {error}
-                    </Alert>
-                )}
-
-                {/* Verification Form with Theme Components */}
-                <form onSubmit={handleSubmit} className="space-y-5">
-                    <FormItem label="One Time Password (OTP)" className="mb-4">
-                        <Input
-                            size="lg"
-                            type="text"
-                            inputMode="numeric"
-                            maxLength={6}
-                            autoFocus
-                            value={otpCode}
-                            onChange={(e) => {
-                                const val = e.target.value.replace(/\D/g, '')
-                                setOtpCode(val)
-                                if (val.length === 6) {
-                                    setError(null)
-                                }
-                            }}
-                            placeholder="Enter 6-digit OTP (e.g. 123456)"
-                            prefix={
-                                <RiLockPasswordLine className="text-xl text-teal-600 ml-1" />
-                            }
-                            className="text-center font-mono tracking-widest text-lg font-bold"
-                        />
-                    </FormItem>
-
-                    {/* Quick Demo Test Pill */}
-                    <div className="flex items-center justify-between text-xs text-gray-500 pt-1">
-                        <span>Need test access?</span>
-                        <button
-                            type="button"
-                            onClick={fillDemoOtp}
-                            className="font-semibold text-teal-600 hover:text-teal-800 underline transition-colors"
-                        >
-                            Auto-fill test code (123456)
-                        </button>
-                    </div>
-
-                    <Button
-                        block
-                        size="lg"
-                        variant="solid"
-                        type="submit"
-                        loading={loading}
-                        className="!bg-gradient-to-r !from-teal-600 !to-cyan-600 hover:!from-teal-700 hover:!to-cyan-700 !text-white font-bold shadow-md shadow-teal-600/20 transition-all"
-                    >
-                        {loading ? 'Verifying Credentials...' : 'Verify & Access Panel'}
-                    </Button>
-                </form>
-
-                {/* Footer Notice */}
-                <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-800 text-center text-[11px] text-gray-400">
-                    Protected by Rolex Security Layer • Encrypted 256-bit Session
-                </div>
-            </Card>
         </div>
     )
 }

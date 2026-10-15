@@ -13,7 +13,13 @@ import { z } from 'zod'
 import type { ZodType } from 'zod'
 import type { CommonProps } from '@/@types/common'
 import type { ReactNode } from 'react'
-import { HiOutlineUser, HiOutlineLockClosed, HiOutlineSparkles, HiShieldCheck, HiOutlineKey } from 'react-icons/hi'
+import {
+    HiOutlineUser,
+    HiOutlineLockClosed,
+    HiOutlineSparkles,
+    HiShieldCheck,
+    HiOutlineKey,
+} from 'react-icons/hi'
 
 interface SignInFormProps extends CommonProps {
     disableSubmit?: boolean
@@ -39,31 +45,31 @@ const validationSchema: ZodType<SignInFormSchema> = z.object({
 
 const DEMO_ACCOUNTS = [
     {
-        label: 'Admin (Instant)',
-        username: 'admin',
+        label: 'Super Master',
+        username: 'Mastan99m',
         password: 'admin123',
-        role: 'Direct Login • No 2FA',
-        badgeColor: 'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
+        role: 'Rolex 2FA (OTP 123456)',
+        is2FA: true,
     },
     {
-        label: 'Super Master (2FA)',
-        username: 'MASTAN99M',
+        label: 'Admin',
+        username: 'admin',
         password: 'admin123',
-        role: 'Rolex Panel • OTP 123456',
-        badgeColor: 'bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
+        role: 'Instant Login • No 2FA',
+        is2FA: false,
     },
     {
         label: 'Demo Operator',
         username: 'demo',
         password: 'password123',
         role: 'Operator • No 2FA',
-        badgeColor: 'bg-amber-50 border-amber-200 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
+        is2FA: false,
     },
 ]
 
 const SignInForm = (props: SignInFormProps) => {
     const [isSubmitting, setSubmitting] = useState<boolean>(false)
-    const [selectedDemo, setSelectedDemo] = useState<string>('admin')
+    const [selectedDemo, setSelectedDemo] = useState<string>('Mastan99m')
 
     const { disableSubmit = false, className, setMessage, passwordHint } = props
 
@@ -74,7 +80,7 @@ const SignInForm = (props: SignInFormProps) => {
         setValue,
     } = useForm<SignInFormSchema>({
         defaultValues: {
-            username: 'admin',
+            username: 'Mastan99m',
             password: 'admin123',
             rememberMe: true,
         },
@@ -113,41 +119,43 @@ const SignInForm = (props: SignInFormProps) => {
 
     return (
         <div className={className}>
-            {/* Quick-Select Demo Accounts Widget */}
-            <div className="mb-5 p-3 rounded-xl bg-slate-50 dark:bg-gray-800/80 border border-slate-200/80 dark:border-gray-700">
-                <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
-                        <HiOutlineSparkles className="text-teal-600" /> Click to Test Local Account:
+            {/* Quick Demo Test Account Picker (Sober & Compact) */}
+            <div className="mb-4 p-2.5 rounded-xl bg-slate-50 dark:bg-gray-800/90 border border-slate-200/90 dark:border-gray-700/80">
+                <div className="flex items-center justify-between mb-1.5 px-0.5">
+                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
+                        <HiOutlineSparkles className="text-teal-600 dark:text-teal-400" /> Quick Account Test:
                     </span>
-                    <span className="text-[10px] text-teal-600 font-semibold font-mono">1-Click Auto Fill</span>
+                    <span className="text-[10px] text-teal-600 dark:text-teal-400 font-semibold font-mono">
+                        1-Click Fill
+                    </span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
+                <div className="grid grid-cols-3 gap-1.5">
                     {DEMO_ACCOUNTS.map((acc) => {
-                        const isSelected = selectedDemo === acc.username
+                        const isSelected = selectedDemo.toLowerCase() === acc.username.toLowerCase()
                         return (
                             <button
                                 key={acc.username}
                                 type="button"
                                 onClick={() => handleSelectDemo(acc)}
                                 className={classNames(
-                                    'p-2 rounded-lg text-left text-xs transition-all border flex flex-col justify-between',
+                                    'py-1.5 px-2 rounded-lg text-left text-xs transition-all border flex flex-col justify-between',
                                     isSelected
-                                        ? 'bg-white dark:bg-gray-700 border-teal-500 shadow-sm ring-1 ring-teal-500'
-                                        : 'bg-transparent hover:bg-white/60 dark:hover:bg-gray-700/50 border-gray-200 dark:border-gray-700',
+                                        ? 'bg-white dark:bg-gray-700 border-teal-600 dark:border-teal-400 shadow-sm ring-1 ring-teal-500/30'
+                                        : 'bg-transparent hover:bg-white/60 dark:hover:bg-gray-700/50 border-gray-200/80 dark:border-gray-700',
                                 )}
                             >
                                 <div className="flex items-center justify-between w-full">
-                                    <span className="font-bold text-gray-800 dark:text-gray-100 font-mono text-[11px]">
+                                    <span className="font-bold text-gray-800 dark:text-gray-100 font-mono text-[11px] truncate">
                                         {acc.username}
                                     </span>
-                                    {acc.username === 'MASTAN99M' ? (
-                                        <HiShieldCheck className="text-emerald-600 text-sm" title="2FA Enabled" />
+                                    {acc.is2FA ? (
+                                        <HiShieldCheck className="text-emerald-600 text-xs shrink-0" title="2FA" />
                                     ) : (
-                                        <HiOutlineKey className="text-blue-500 text-xs" />
+                                        <HiOutlineKey className="text-blue-500 text-[10px] shrink-0" />
                                     )}
                                 </div>
-                                <span className="text-[10px] text-gray-500 truncate mt-0.5">
-                                    {acc.role}
+                                <span className="text-[9px] text-gray-400 truncate mt-0.5">
+                                    {acc.label}
                                 </span>
                             </button>
                         )
@@ -155,22 +163,24 @@ const SignInForm = (props: SignInFormProps) => {
                 </div>
             </div>
 
-            <Form onSubmit={handleSubmit(onSignIn)} className="space-y-4">
+            <Form onSubmit={handleSubmit(onSignIn)} className="space-y-3.5">
                 <FormItem
-                    label="Username / ID"
+                    label="Username"
                     invalid={Boolean(errors.username)}
                     errorMessage={errors.username?.message}
-                    className="mb-3"
+                    className="mb-2.5"
                 >
                     <Controller
                         name="username"
                         control={control}
                         render={({ field }) => (
                             <Input
+                                size="md"
                                 type="text"
-                                placeholder="Enter Username (e.g. admin or MASTAN99M)"
+                                placeholder="Username"
                                 autoComplete="username"
-                                prefix={<HiOutlineUser className="text-lg text-teal-600 ml-1" />}
+                                prefix={<HiOutlineUser className="text-base text-gray-400 ml-0.5" />}
+                                className="!bg-slate-50/70 focus:!bg-white dark:!bg-gray-900/60 dark:focus:!bg-gray-900 font-medium"
                                 {...field}
                             />
                         )}
@@ -181,24 +191,25 @@ const SignInForm = (props: SignInFormProps) => {
                     label="Password"
                     invalid={Boolean(errors.password)}
                     errorMessage={errors.password?.message}
-                    className="mb-3"
+                    className="mb-2.5"
                 >
                     <Controller
                         name="password"
                         control={control}
                         render={({ field }) => (
                             <PasswordInput
-                                type="password"
-                                placeholder="Enter Password"
+                                size="md"
+                                placeholder="Password"
                                 autoComplete="current-password"
-                                prefix={<HiOutlineLockClosed className="text-lg text-teal-600 ml-1" />}
+                                prefix={<HiOutlineLockClosed className="text-base text-gray-400 ml-0.5" />}
+                                className="!bg-slate-50/70 focus:!bg-white dark:!bg-gray-900/60 dark:focus:!bg-gray-900 font-medium"
                                 {...field}
                             />
                         )}
                     />
                 </FormItem>
 
-                <div className="flex items-center justify-between py-1">
+                <div className="flex items-center justify-between pt-0.5 pb-1">
                     <Controller
                         name="rememberMe"
                         control={control}
@@ -206,14 +217,14 @@ const SignInForm = (props: SignInFormProps) => {
                             <Checkbox
                                 checked={value}
                                 onChange={(val) => onChange(val)}
-                                className="text-xs text-gray-600 dark:text-gray-400"
+                                className="text-xs text-gray-600 dark:text-gray-400 select-none"
                             >
-                                Remember me (Auto Token Refresh)
+                                Remember me
                             </Checkbox>
                         )}
                     />
-                    <Tag className="bg-teal-50 border-teal-200 text-teal-700 text-[10px] font-bold">
-                        JWT + Refresh Ready
+                    <Tag className="bg-slate-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-[10px] font-semibold border-none">
+                        JWT Token
                     </Tag>
                 </div>
 
@@ -225,9 +236,9 @@ const SignInForm = (props: SignInFormProps) => {
                     loading={isSubmitting}
                     variant="solid"
                     type="submit"
-                    className="!bg-gradient-to-r !from-teal-600 !to-cyan-600 hover:!from-teal-700 hover:!to-cyan-700 text-white font-bold shadow-md shadow-teal-600/20 transition-all mt-4"
+                    className="!bg-[#175276] hover:!bg-[#12425f] active:!bg-[#0e334a] text-white font-bold shadow-md shadow-blue-900/15 transition-all !h-11 mt-3 text-sm tracking-wide"
                 >
-                    {isSubmitting ? 'Authenticating...' : 'Sign In to Dashboard'}
+                    {isSubmitting ? 'Signing In...' : 'Sign In'}
                 </Button>
             </Form>
         </div>
