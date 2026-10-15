@@ -1,0 +1,5 @@
+export const TOKEN_TYPE = 'Bearer '
+export const REQUEST_HEADER_AUTH_KEY = 'Authorization'
+export const TOKEN_NAME_IN_STORAGE = 'accessToken'
+export const REFRESH_TOKEN_NAME_IN_STORAGE = 'refreshToken'
+export const USER_NAME_IN_STORAGE = 'user'
