@@ -63,7 +63,7 @@ function AuthProvider({ children }: AuthProviderProps) {
         )
     }
 
-    const handleSignIn = (tokens: Token, profile: User) => {
+    const handleSignIn = (tokens: Token, profile: User = {}) => {
         const accessToken = tokens.accessToken || tokens.token || ''
         const refreshToken = tokens.refreshToken || tokens.refereshToken || ''
 

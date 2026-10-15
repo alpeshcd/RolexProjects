@@ -76,7 +76,7 @@ export const useToken = () => {
     const getProfile = (): User | null => {
         try {
             const profileStr = storage.getItem(USER_NAME_IN_STORAGE)
-            return profileStr ? JSON.parse(profileStr) : null
+            return profileStr ? JSON.parse(profileStr as string) : null
         } catch {
             return null
         }

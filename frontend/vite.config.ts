@@ -5,7 +5,7 @@ import dynamicImport from 'vite-plugin-dynamic-import'
 
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, process.cwd(), '')
-    const apiUrl = env.VITE_APP_API_URL || 'http://localhost:8000'
+    const apiUrl = env.VITE_APP_API_URL || 'http://localhost:8001'
     
     return {
         plugins: [react(), dynamicImport()],

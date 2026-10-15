@@ -20,6 +20,7 @@ export type User = {
     upline_share?: number
     upline?: string | null
     is_2fa_enabled?: boolean
+    company?: any
 }
 
 export type Token = {
