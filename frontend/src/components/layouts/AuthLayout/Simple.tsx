@@ -9,8 +9,13 @@ interface SimpleProps extends CommonProps {
 
 const Simple = ({ children, content, ...rest }: SimpleProps) => {
     return (
-        <div className="min-h-screen w-full bg-gradient-to-b from-slate-100 via-[#e9edf3] to-slate-200 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex flex-col justify-center items-center py-10 px-4">
-            <Container className="flex flex-col flex-auto items-center justify-center min-w-0 w-full max-w-[440px]">
+        <div className="min-h-screen w-full relative overflow-hidden bg-slate-950 flex flex-col justify-center items-center py-10 px-4">
+            {/* Ambient Luxury Lighting Orbs */}
+            <div className="absolute top-1/4 -left-32 w-96 h-96 rounded-full bg-emerald-500/15 blur-[120px] pointer-events-none"></div>
+            <div className="absolute bottom-1/4 -right-32 w-96 h-96 rounded-full bg-amber-500/10 blur-[120px] pointer-events-none"></div>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-cyan-500/5 blur-[140px] pointer-events-none"></div>
+
+            <Container className="relative z-10 flex flex-col flex-auto items-center justify-center min-w-0 w-full max-w-[460px]">
                 <div className="w-full">
                     {content}
                     {children

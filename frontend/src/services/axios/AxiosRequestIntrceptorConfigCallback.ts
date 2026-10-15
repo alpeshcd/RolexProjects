@@ -10,6 +10,13 @@ import type { InternalAxiosRequestConfig } from 'axios'
 const AxiosRequestIntrceptorConfigCallback = (
     config: InternalAxiosRequestConfig,
 ) => {
+    if (config.url?.startsWith('/api')) {
+        config.baseURL = ''
+    } else if (config.url?.startsWith('api/')) {
+        config.url = '/' + config.url
+        config.baseURL = ''
+    }
+
     const storage = appConfig.accessTokenPersistStrategy
     let accessToken = ''
 

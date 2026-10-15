@@ -18,6 +18,12 @@ export default defineConfig(({ mode }) => {
         server: {
             port: 5173,
             proxy: {
+                '/api/api': {
+                    target: apiUrl,
+                    changeOrigin: true,
+                    secure: false,
+                    rewrite: (path) => path.replace(/^\/api\/api/, '/api'),
+                },
                 '/api': {
                     target: apiUrl,
                     changeOrigin: true,

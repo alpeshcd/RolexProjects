@@ -20,20 +20,23 @@ export const SignInBase = ({ disableSubmit }: SignInProps) => {
                 <RolexLogo className="mx-auto" showSubtitle />
             </div>
 
-            {/* Centered Login Card */}
+            {/* Centered Luxury Glassmorphic Login Card */}
             <Card
-                className="w-full max-w-[420px] bg-white dark:bg-gray-800 shadow-xl shadow-slate-200/60 dark:shadow-none border border-slate-200/80 dark:border-gray-700/80 rounded-2xl overflow-hidden transition-all"
-                bodyClass="p-6 sm:p-7"
+                className="w-full max-w-[440px] bg-white/95 dark:bg-slate-900/90 backdrop-blur-2xl shadow-2xl shadow-slate-950/40 border border-slate-200/80 dark:border-slate-800 rounded-3xl overflow-hidden transition-all duration-300"
+                bodyClass="p-7 sm:p-8"
             >
-                <div className="mb-5 text-center">
-                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">
-                        Sign in to start your session
+                <div className="mb-6 text-center">
+                    <h2 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">
+                        Sign In To Exchange
+                    </h2>
+                    <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1">
+                        Enter your credentials to access operations & ledger
                     </p>
                 </div>
 
                 {message && (
-                    <Alert showIcon className="mb-4 text-xs" type="danger">
-                        <span className="break-all">{message}</span>
+                    <Alert showIcon className="mb-5 text-xs rounded-xl" type="danger">
+                        <span className="break-all font-medium">{message}</span>
                     </Alert>
                 )}
 
@@ -42,9 +45,10 @@ export const SignInBase = ({ disableSubmit }: SignInProps) => {
                     setMessage={setMessage}
                 />
 
-                <div className="mt-5 pt-3.5 border-t border-gray-100 dark:border-gray-800/80 flex items-center justify-between text-[11px] text-gray-400 dark:text-gray-500">
-                    <span className="flex items-center gap-1">
-                        <MdSecurity className="text-teal-600 dark:text-teal-400 text-xs" /> 256-Bit SSL
+                <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400 dark:text-slate-500 font-medium">
+                    <span className="flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <MdSecurity className="text-emerald-600 dark:text-emerald-400 text-sm" /> 256-Bit SSL Enforced
                     </span>
                     <span>Rolex Exchange System</span>
                 </div>

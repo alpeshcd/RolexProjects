@@ -1,46 +1,33 @@
 import {
-    PiHouseLineDuotone,
-    PiArrowsInDuotone,
-    PiSquaresFourBold,
-    PiMagnifyingGlassBold,
-    PiUserBold,
-    PiUsersBold,
-    PiWalletBold,
-    PiHandCoinsBold,
-    PiMoneyBold,
-    PiFileTextBold,
-    PiChartLineUpBold,
-    PiKeyBold,
-    PiSignOutBold
-} from 'react-icons/pi'
-import {
-    MdDashboard,
-    MdSearch,
-    MdPerson,
-    MdAccountBalanceWallet,
-    MdAttachMoney,
-    MdMoneyOff,
-    MdPeople,
-    MdReceiptLong,
-    MdQueryStats,
-    MdVpnKey
-} from 'react-icons/md'
+    DashboardOutlined,
+    SearchOutlined,
+    TeamOutlined,
+    BankOutlined,
+    DollarCircleOutlined,
+    ArrowUpOutlined,
+    UsergroupAddOutlined,
+    FileTextOutlined,
+    BarChartOutlined,
+    KeyOutlined,
+    AppstoreOutlined,
+    MenuFoldOutlined
+} from '@ant-design/icons'
 
 export type NavigationIcons = Record<string, JSX.Element>
 
 const navigationIcon: NavigationIcons = {
-    home: <PiSquaresFourBold className="text-lg" />,
-    dashboard: <MdDashboard className="text-lg text-slate-600" />,
-    globalSearch: <MdSearch className="text-xl text-slate-600" />,
-    clients: <MdPerson className="text-lg text-slate-600" />,
-    accounts: <MdAccountBalanceWallet className="text-lg text-slate-600" />,
-    deposit: <MdAttachMoney className="text-lg text-slate-600" />,
-    withdraw: <MdMoneyOff className="text-lg text-slate-600" />,
-    extraUsers: <MdPeople className="text-lg text-slate-600" />,
-    statement: <MdReceiptLong className="text-lg text-slate-600" />,
-    siteStats: <MdQueryStats className="text-lg text-slate-600" />,
-    changePassword: <MdVpnKey className="text-lg text-slate-600" />,
-    collapseMenu: <PiArrowsInDuotone />,
+    home: <AppstoreOutlined className="text-base text-gray-500" />,
+    dashboard: <DashboardOutlined className="text-base text-blue-500" />,
+    globalSearch: <SearchOutlined className="text-base text-gray-500" />,
+    clients: <TeamOutlined className="text-base text-gray-500" />,
+    accounts: <BankOutlined className="text-base text-gray-500" />,
+    deposit: <DollarCircleOutlined className="text-base text-green-600" />,
+    withdraw: <ArrowUpOutlined className="text-base text-rose-500" />,
+    extraUsers: <UsergroupAddOutlined className="text-base text-gray-500" />,
+    statement: <FileTextOutlined className="text-base text-gray-500" />,
+    siteStats: <BarChartOutlined className="text-base text-gray-500" />,
+    changePassword: <KeyOutlined className="text-base text-gray-500" />,
+    collapseMenu: <MenuFoldOutlined />,
 }
 
 export default navigationIcon

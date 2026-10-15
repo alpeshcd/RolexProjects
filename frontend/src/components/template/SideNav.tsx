@@ -2,7 +2,6 @@ import classNames from '@/utils/classNames'
 import ScrollBar from '@/components/ui/ScrollBar'
 import RolexLogo from '@/components/template/RolexLogo'
 import VerticalMenuContent from '@/components/template/VerticalMenuContent'
-import Button from '@/components/ui/Button'
 import { useThemeStore } from '@/store/themeStore'
 import { useSessionUser } from '@/store/authStore'
 import { useRouteKeyStore } from '@/store/routeKeyStore'
@@ -10,7 +9,8 @@ import navigationConfig from '@/configs/navigation.config'
 import appConfig from '@/configs/app.config'
 import { Link } from 'react-router-dom'
 import useAuth from '@/auth'
-import { HiOutlineLogout } from 'react-icons/hi'
+import { Avatar, Tag, Button } from 'antd'
+import { LogoutOutlined, UserOutlined } from '@ant-design/icons'
 import {
     SIDE_NAV_WIDTH,
     SIDE_NAV_COLLAPSED_WIDTH,
@@ -53,20 +53,24 @@ const SideNav = ({
     const userAuthority = useSessionUser((state) => state.user.authority)
     const { signOut } = useAuth()
 
+    const roleName = ((user as any)?.role || 'Admin').toUpperCase()
+    const username = user?.full_name || user?.userName || (user as any)?.username || 'Admin'
+
     return (
-        <div
+        <aside
             style={sideNavCollapse ? sideNavCollapseStyle : sideNavStyle}
             className={classNames(
-                'side-nav flex flex-col justify-between border-r border-gray-200/80 dark:border-gray-800 bg-white dark:bg-gray-900',
+                'side-nav flex flex-col justify-between border-r border-[#f0f0f0] dark:border-[#303030] bg-white dark:bg-[#1f1f1f] shadow-[1px_0_2px_0_rgba(0,0,0,0.02)] transition-all duration-200',
                 background && 'side-nav-bg',
                 !sideNavCollapse && 'side-nav-expand',
                 className,
             )}
         >
             <div className="flex flex-col flex-auto min-h-0">
+                {/* Brand Header */}
                 <Link
                     to={appConfig.authenticatedEntryPath}
-                    className="side-nav-header flex flex-col items-center justify-center border-b border-gray-100 dark:border-gray-800 py-3"
+                    className="side-nav-header flex flex-col items-center justify-center border-b border-[#f0f0f0] dark:border-[#303030] py-3.5 px-3"
                 >
                     <RolexLogo
                         collapsed={sideNavCollapse}
@@ -76,15 +80,31 @@ const SideNav = ({
                                 : LOGO_X_GUTTER,
                         )}
                     />
-                    {!sideNavCollapse && (
-                        <div className="text-center mt-1">
-                            <span className="text-xs font-black text-[#008080] dark:text-[#2dd4bf] tracking-wide font-mono uppercase">
-                                {user?.userName || (user as any)?.username || 'MASTAN99M'}
-                            </span>
-                        </div>
-                    )}
                 </Link>
-                <div className={classNames('side-nav-content flex-auto min-h-0 py-2', contentClass)}>
+
+                {/* Clean User Profile Capsule (when expanded) */}
+                {!sideNavCollapse && (
+                    <div className="mx-3 mt-3 mb-1 p-2.5 rounded-lg bg-[#fafafa] dark:bg-[#141414] border border-[#f0f0f0] dark:border-[#303030] flex items-center gap-2.5">
+                        <Avatar
+                            size={32}
+                            icon={<UserOutlined />}
+                            className="bg-blue-600 text-white font-bold shrink-0"
+                        />
+                        <div className="flex flex-col min-w-0 flex-1">
+                            <span className="text-xs font-semibold text-gray-800 dark:text-gray-200 truncate">
+                                {username}
+                            </span>
+                            <div className="flex items-center gap-1 mt-0.5">
+                                <Tag color="blue" className="text-[10px] m-0 py-0 px-1 leading-none">
+                                    {roleName}
+                                </Tag>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Navigation Menu */}
+                <div className={classNames('side-nav-content flex-auto min-h-0 py-2 px-1', contentClass)}>
                     <ScrollBar style={{ height: '100%' }} direction={direction}>
                         <VerticalMenuContent
                             collapsed={sideNavCollapse}
@@ -98,19 +118,20 @@ const SideNav = ({
                 </div>
             </div>
 
-            {/* Rolex Solid Teal Logout Action Button */}
-            <div className="p-3 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900">
+            {/* Clean Logout Button */}
+            <div className="p-3 border-t border-[#f0f0f0] dark:border-[#303030] bg-[#fafafa] dark:bg-[#141414]">
                 <Button
                     block
-                    variant="solid"
+                    danger
+                    type="text"
                     onClick={() => signOut()}
-                    icon={<HiOutlineLogout className="text-base text-white" />}
-                    className="!bg-[#008080] hover:!bg-[#006e6e] text-white text-xs font-bold rounded-lg shadow-sm !h-9 flex items-center justify-center gap-1.5"
+                    icon={<LogoutOutlined />}
+                    className="text-xs font-medium !h-9 flex items-center justify-center gap-1.5"
                 >
-                    {!sideNavCollapse && <span>Logout</span>}
+                    {!sideNavCollapse && <span>Sign Out</span>}
                 </Button>
             </div>
-        </div>
+        </aside>
     )
 }
 

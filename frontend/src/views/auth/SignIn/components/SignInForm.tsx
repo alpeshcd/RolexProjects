@@ -49,6 +49,7 @@ const SignInForm = (props: SignInFormProps) => {
         handleSubmit,
         formState: { errors },
         control,
+        setValue,
     } = useForm<SignInFormSchema>({
         defaultValues: {
             username: '',
@@ -83,6 +84,44 @@ const SignInForm = (props: SignInFormProps) => {
 
     return (
         <div className={className}>
+            {/* Quick Fill Test Accounts */}
+            <div className="mb-4 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
+                    ⚡ Quick Login Credentials:
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setValue('username', 'admin')
+                            setValue('password', 'admin123')
+                        }}
+                        className="px-2 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 text-[10px] font-bold transition-colors cursor-pointer"
+                    >
+                        Admin (Direct)
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setValue('username', 'MASTAN99M')
+                            setValue('password', 'admin123')
+                        }}
+                        className="px-2 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30 text-[10px] font-bold transition-colors cursor-pointer"
+                    >
+                        Super Master (2FA)
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setValue('username', 'demo')
+                            setValue('password', 'password123')
+                        }}
+                        className="px-2 py-1 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-700 dark:text-blue-300 border border-blue-500/30 text-[10px] font-bold transition-colors cursor-pointer"
+                    >
+                        Operator (demo)
+                    </button>
+                </div>
+            </div>
 
             <Form onSubmit={handleSubmit(onSignIn)} className="space-y-3.5">
                 <FormItem
@@ -157,9 +196,9 @@ const SignInForm = (props: SignInFormProps) => {
                     loading={isSubmitting}
                     variant="solid"
                     type="submit"
-                    className="!bg-[#175276] hover:!bg-[#12425f] active:!bg-[#0e334a] text-white font-bold shadow-md shadow-blue-900/15 transition-all !h-11 mt-3 text-sm tracking-wide"
+                    className="!bg-gradient-to-r !from-emerald-600 !via-teal-600 !to-emerald-700 hover:!from-emerald-500 hover:!to-teal-500 active:!from-emerald-700 active:!to-teal-700 text-white font-black shadow-lg shadow-emerald-950/20 rounded-xl transition-all !h-11 mt-3 text-sm tracking-wider uppercase border-none"
                 >
-                    {isSubmitting ? 'Signing In...' : 'Sign In'}
+                    {isSubmitting ? 'Verifying Session...' : 'Sign In To Panel'}
                 </Button>
             </Form>
         </div>

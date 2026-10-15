@@ -14,6 +14,7 @@
     "format": "npm run prettier:fix && npm run lint:fix"
   },
   "dependencies": {
+    "@ant-design/icons": "^6.3.4",
     "@floating-ui/react": "^0.26.23",
     "@fullcalendar/core": "^6.1.15",
     "@fullcalendar/daygrid": "^6.1.15",
@@ -29,6 +30,7 @@
     "@tiptap/react": "^2.6.6",
     "@tiptap/starter-kit": "^2.6.6",
     "@visx/pattern": "^3.3.0",
+    "antd": "^6.6.6",
     "axios": "^1.7.7",
     "axios-mock-adapter": "^2.0.0",
     "classnames": "^2.5.1",
