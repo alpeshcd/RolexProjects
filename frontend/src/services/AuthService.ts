@@ -11,129 +11,20 @@ import type {
     User,
 } from '@/@types/auth'
 
-// Local mock users for fallback if backend server is not running
-const LOCAL_USERS: Record<string, {
-    password: string
-    user: User
-    requires_2fa: boolean
-}> = {
-    mastan99m: {
-        password: 'admin123',
-        requires_2fa: true,
-        user: {
-            id: 1,
-            username: 'MASTAN99M',
-            userName: 'MASTAN99M',
-            full_name: 'Mastan Admin',
-            email: 'admin@rolexpanel.win',
-            role: 'supermaster',
-            authority: ['admin'],
-            balance: 143418.0,
-            upline_share: 25589.0,
-            upline: 'MASTAN365',
-            is_2fa_enabled: true,
-        },
-    },
-    admin: {
-        password: 'admin123',
-        requires_2fa: false,
-        user: {
-            id: 2,
-            username: 'admin',
-            userName: 'admin',
-            full_name: 'System Administrator',
-            email: 'admin@ecme.com',
-            role: 'admin',
-            authority: ['admin'],
-            balance: 500000.0,
-            upline_share: 50000.0,
-            upline: 'DIRECT',
-            is_2fa_enabled: false,
-        },
-    },
-    demo: {
-        password: 'password123',
-        requires_2fa: false,
-        user: {
-            id: 3,
-            username: 'demo',
-            userName: 'demo',
-            full_name: 'Demo Operator',
-            email: 'demo@rolexpanel.win',
-            role: 'operator',
-            authority: ['user'],
-            balance: 25000.0,
-            upline_share: 1000.0,
-            upline: 'MASTAN99M',
-            is_2fa_enabled: false,
-        },
-    },
-}
-
 export async function apiSignIn(data: SignInCredential): Promise<SignInResponse> {
     const username = (data.username || data.userName || data.email || '').trim()
     const password = data.password
 
-    try {
-        const response = await AxiosBase.post<SignInResponse>(endpointConfig.signIn, {
-            username,
-            password,
-        })
-        return response.data
-    } catch (error: any) {
-        // If backend returned a specific HTTP error (e.g. 401 Invalid Credentials), throw it
-        if (error?.response?.data) {
-            throw error
-        }
-
-        // Backend unreachable - fallback to local simulation
-        const key = username.toLowerCase()
-        const localMock = LOCAL_USERS[key]
-        if (localMock && localMock.password === password) {
-            if (localMock.requires_2fa) {
-                return {
-                    requires_2fa: true,
-                    temp_token: `local_temp_token_${key}`,
-                    message: 'Please verify your 2FA OTP to complete login.',
-                }
-            }
-            return {
-                requires_2fa: false,
-                access_token: `local_access_token_${key}_${Date.now()}`,
-                refresh_token: `local_refresh_token_${key}_${Date.now()}`,
-                token_type: 'bearer',
-                user: localMock.user,
-                message: 'Local login successful (Offline mode)',
-            }
-        }
-
-        throw error
-    }
+    const response = await AxiosBase.post<SignInResponse>(endpointConfig.signIn, {
+        username,
+        password,
+    })
+    return response.data
 }
 
 export async function apiVerify2FA(data: { temp_token: string; otp_code: string }): Promise<SignInResponse> {
-    try {
-        const response = await AxiosBase.post<SignInResponse>(endpointConfig.verify2fa, data)
-        return response.data
-    } catch (error: any) {
-        if (error?.response?.data) {
-            throw error
-        }
-
-        // Fallback for local offline mode (test OTP 123456 or length 6)
-        if (data.otp_code === '123456' || data.otp_code.trim().length === 6) {
-            return {
-                requires_2fa: false,
-                access_token: `local_access_token_mastan99m_${Date.now()}`,
-                refresh_token: `local_refresh_token_mastan99m_${Date.now()}`,
-                token_type: 'bearer',
-                user: LOCAL_USERS['mastan99m'].user,
-                message: '2FA verification successful (Offline mode)',
-            }
-        }
-
-        throw error
-    }
+    const response = await AxiosBase.post<SignInResponse>(endpointConfig.verify2fa, data)
+    return response.data
 }
 
 export async function apiRefreshToken(refreshToken: string): Promise<SignInResponse> {
@@ -232,4 +123,78 @@ export async function apiGetPricingPlans<T>() {
         url: '/pricing',
         method: 'get',
     })
+}
+
+export async function apiGetUsers(params?: Record<string, any>): Promise<User[]> {
+    const response = await AxiosBase.get<User[]>('/api/v1/users', { params })
+    return response.data
+}
+
+export async function apiCreateClientFromForm(data: {
+    master: string
+    referral_code?: string
+    username: string
+    password: string
+    mobile?: string
+}): Promise<User> {
+    const response = await AxiosBase.post<User>('/api/v1/users/client', data)
+    return response.data
+}
+
+export async function apiCreateUser(data: {
+    username: string
+    password: string
+    full_name?: string
+    email?: string
+    role?: string
+    balance?: number
+    upline_share?: number
+    upline?: string
+    is_2fa_enabled?: boolean
+}): Promise<User> {
+    const response = await AxiosBase.post<User>('/api/v1/users', data)
+    return response.data
+}
+
+export async function apiUpdateUserBalance(
+    userId: number | string,
+    data: { amount: number; operation: 'deposit' | 'withdraw' }
+): Promise<User> {
+    const response = await AxiosBase.put<User>(`/api/v1/users/${userId}/balance`, data)
+    return response.data
+}
+
+export async function apiGetStatsSummary(): Promise<{
+    total_clients: number
+    total_balance: number
+    total_upline_share: number
+    active_clients: number
+}> {
+    const response = await AxiosBase.get('/api/v1/users/stats/summary')
+    return response.data
+}
+
+export interface DashboardStatsData {
+    new_clients: number
+    total_ftd: number
+    total_ftd_count: number
+    total_deposits: number
+    total_deposits_count: number
+    approved_deposits: number
+    approved_deposits_count: number
+    rejected_deposits: number
+    rejected_deposits_count: number
+    total_withdrawals: number
+    total_withdrawals_count: number
+    pending_withdrawals: number
+    pending_withdrawals_count: number
+    approved_withdrawals: number
+    approved_withdrawals_count: number
+    rejected_withdrawals: number
+    rejected_withdrawals_count: number
+}
+
+export async function apiGetDashboardStats(): Promise<DashboardStatsData> {
+    const response = await AxiosBase.get<DashboardStatsData>('/api/v1/dashboard/stats')
+    return response.data
 }

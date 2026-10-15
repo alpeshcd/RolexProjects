@@ -16,9 +16,6 @@ import type { ReactNode } from 'react'
 import {
     HiOutlineUser,
     HiOutlineLockClosed,
-    HiOutlineSparkles,
-    HiShieldCheck,
-    HiOutlineKey,
 } from 'react-icons/hi'
 
 interface SignInFormProps extends CommonProps {
@@ -43,33 +40,8 @@ const validationSchema: ZodType<SignInFormSchema> = z.object({
     rememberMe: z.boolean().optional(),
 })
 
-const DEMO_ACCOUNTS = [
-    {
-        label: 'Super Master',
-        username: 'Mastan99m',
-        password: 'admin123',
-        role: 'Rolex 2FA (OTP 123456)',
-        is2FA: true,
-    },
-    {
-        label: 'Admin',
-        username: 'admin',
-        password: 'admin123',
-        role: 'Instant Login • No 2FA',
-        is2FA: false,
-    },
-    {
-        label: 'Demo Operator',
-        username: 'demo',
-        password: 'password123',
-        role: 'Operator • No 2FA',
-        is2FA: false,
-    },
-]
-
 const SignInForm = (props: SignInFormProps) => {
     const [isSubmitting, setSubmitting] = useState<boolean>(false)
-    const [selectedDemo, setSelectedDemo] = useState<string>('Mastan99m')
 
     const { disableSubmit = false, className, setMessage, passwordHint } = props
 
@@ -77,11 +49,10 @@ const SignInForm = (props: SignInFormProps) => {
         handleSubmit,
         formState: { errors },
         control,
-        setValue,
     } = useForm<SignInFormSchema>({
         defaultValues: {
-            username: 'Mastan99m',
-            password: 'admin123',
+            username: '',
+            password: '',
             rememberMe: true,
         },
         resolver: zodResolver(validationSchema),
@@ -110,58 +81,8 @@ const SignInForm = (props: SignInFormProps) => {
         }
     }
 
-    const handleSelectDemo = (acc: typeof DEMO_ACCOUNTS[0]) => {
-        setSelectedDemo(acc.username)
-        setValue('username', acc.username, { shouldValidate: true })
-        setValue('password', acc.password, { shouldValidate: true })
-        setMessage?.('')
-    }
-
     return (
         <div className={className}>
-            {/* Quick Demo Test Account Picker (Sober & Compact) */}
-            <div className="mb-4 p-2.5 rounded-xl bg-slate-50 dark:bg-gray-800/90 border border-slate-200/90 dark:border-gray-700/80">
-                <div className="flex items-center justify-between mb-1.5 px-0.5">
-                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
-                        <HiOutlineSparkles className="text-teal-600 dark:text-teal-400" /> Quick Account Test:
-                    </span>
-                    <span className="text-[10px] text-teal-600 dark:text-teal-400 font-semibold font-mono">
-                        1-Click Fill
-                    </span>
-                </div>
-                <div className="grid grid-cols-3 gap-1.5">
-                    {DEMO_ACCOUNTS.map((acc) => {
-                        const isSelected = selectedDemo.toLowerCase() === acc.username.toLowerCase()
-                        return (
-                            <button
-                                key={acc.username}
-                                type="button"
-                                onClick={() => handleSelectDemo(acc)}
-                                className={classNames(
-                                    'py-1.5 px-2 rounded-lg text-left text-xs transition-all border flex flex-col justify-between',
-                                    isSelected
-                                        ? 'bg-white dark:bg-gray-700 border-teal-600 dark:border-teal-400 shadow-sm ring-1 ring-teal-500/30'
-                                        : 'bg-transparent hover:bg-white/60 dark:hover:bg-gray-700/50 border-gray-200/80 dark:border-gray-700',
-                                )}
-                            >
-                                <div className="flex items-center justify-between w-full">
-                                    <span className="font-bold text-gray-800 dark:text-gray-100 font-mono text-[11px] truncate">
-                                        {acc.username}
-                                    </span>
-                                    {acc.is2FA ? (
-                                        <HiShieldCheck className="text-emerald-600 text-xs shrink-0" title="2FA" />
-                                    ) : (
-                                        <HiOutlineKey className="text-blue-500 text-[10px] shrink-0" />
-                                    )}
-                                </div>
-                                <span className="text-[9px] text-gray-400 truncate mt-0.5">
-                                    {acc.label}
-                                </span>
-                            </button>
-                        )
-                    })}
-                </div>
-            </div>
 
             <Form onSubmit={handleSubmit(onSignIn)} className="space-y-3.5">
                 <FormItem

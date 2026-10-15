@@ -49,6 +49,7 @@ const SideNav = ({
     )
 
     const currentRouteKey = useRouteKeyStore((state) => state.currentRouteKey)
+    const user = useSessionUser((state) => state.user)
     const userAuthority = useSessionUser((state) => state.user.authority)
     const { signOut } = useAuth()
 
@@ -65,7 +66,7 @@ const SideNav = ({
             <div className="flex flex-col flex-auto min-h-0">
                 <Link
                     to={appConfig.authenticatedEntryPath}
-                    className="side-nav-header flex flex-col justify-center border-b border-gray-100 dark:border-gray-800 py-3"
+                    className="side-nav-header flex flex-col items-center justify-center border-b border-gray-100 dark:border-gray-800 py-3"
                 >
                     <RolexLogo
                         collapsed={sideNavCollapse}
@@ -75,6 +76,13 @@ const SideNav = ({
                                 : LOGO_X_GUTTER,
                         )}
                     />
+                    {!sideNavCollapse && (
+                        <div className="text-center mt-1">
+                            <span className="text-xs font-black text-[#008080] dark:text-[#2dd4bf] tracking-wide font-mono uppercase">
+                                {user?.userName || (user as any)?.username || 'MASTAN99M'}
+                            </span>
+                        </div>
+                    )}
                 </Link>
                 <div className={classNames('side-nav-content flex-auto min-h-0 py-2', contentClass)}>
                     <ScrollBar style={{ height: '100%' }} direction={direction}>
@@ -90,16 +98,16 @@ const SideNav = ({
                 </div>
             </div>
 
-            {/* Ecme Theme Sign Out Action Button */}
+            {/* Rolex Solid Teal Logout Action Button */}
             <div className="p-3 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900">
                 <Button
                     block
-                    variant="twoTone"
+                    variant="solid"
                     onClick={() => signOut()}
-                    icon={<HiOutlineLogout className="text-lg text-rose-600" />}
-                    className="!text-rose-600 hover:!bg-rose-50 dark:hover:!bg-rose-950/30 text-xs font-bold"
+                    icon={<HiOutlineLogout className="text-base text-white" />}
+                    className="!bg-[#008080] hover:!bg-[#006e6e] text-white text-xs font-bold rounded-lg shadow-sm !h-9 flex items-center justify-center gap-1.5"
                 >
-                    {!sideNavCollapse && <span>Sign Out</span>}
+                    {!sideNavCollapse && <span>Logout</span>}
                 </Button>
             </div>
         </div>

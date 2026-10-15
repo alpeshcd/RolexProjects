@@ -9,9 +9,12 @@ import Tag from '@/components/ui/Tag'
 
 const _UserDropdown = () => {
     const user = useSessionUser((state) => state.user)
-    const username = user?.userName || (user as any)?.username || 'MASTAN99M'
-    const email = user?.email || 'admin@rolexpanel.win'
-    const role = (user as any)?.role || 'Super Master'
+    const username = user?.full_name || user?.userName || (user as any)?.username || 'User'
+    const email = user?.email || ''
+    const role = ((user as any)?.role || 'Admin').toUpperCase()
+    const balance = user?.balance !== undefined
+        ? `${Number(user.balance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} PTS`
+        : '0.00 PTS'
 
     const { signOut } = useAuth()
 
@@ -51,12 +54,14 @@ const _UserDropdown = () => {
                         <div className="font-bold text-gray-900 dark:text-gray-100 text-sm">
                             {username}
                         </div>
-                        <div className="text-[11px] text-gray-500">
-                            {email}
-                        </div>
+                        {email && (
+                            <div className="text-[11px] text-gray-500">
+                                {email}
+                            </div>
+                        )}
                         <div className="mt-1">
                             <Tag className="bg-teal-50 border-teal-200 text-teal-700 text-[10px] font-bold">
-                                Master Balance: 143,418 PTS
+                                Balance: {balance}
                             </Tag>
                         </div>
                     </div>

@@ -19,8 +19,19 @@ export type User = {
     balance?: number
     upline_share?: number
     upline?: string | null
+    domain?: string | null
+    client_id?: number | null
+    mobile?: string | null
+    master?: string | null
+    site?: string | null
+    deposit_count?: number
+    source?: string
+    referral_code?: string | null
+    is_active?: boolean
     is_2fa_enabled?: boolean
     company?: any
+    created_at?: string
+    created_on?: string
 }
 
 export type Token = {

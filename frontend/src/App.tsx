@@ -5,10 +5,6 @@ import { AuthProvider } from '@/auth'
 import Views from '@/views'
 import appConfig from './configs/app.config'
 import './locales'
-
-if (appConfig.enableMock) {
-    import('./mock')
-}
 const apiSetup = import.meta.env.VITE_APP_API_URL;
 
 function App() {

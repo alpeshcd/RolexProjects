@@ -33,3 +33,28 @@ def root():
         "docs": "/docs",
         "api_v1": settings.API_V1_STR
     }
+
+@app.get("/api/notification/count")
+def notification_count():
+    return {"count": 0}
+
+@app.get("/api/notification/list")
+def notification_list():
+    return []
+
+@app.get("/api/search/query")
+def search_query(query: str = ""):
+    q = query.strip().lower()
+    items = [
+        {"title": "Clients", "url": "/clients", "categoryTitle": "Navigation"},
+        {"title": "Accounts", "url": "/accounts", "categoryTitle": "Navigation"},
+        {"title": "Deposit Banking", "url": "/deposit", "categoryTitle": "Banking"},
+        {"title": "Withdraw Payouts", "url": "/withdraw", "categoryTitle": "Banking"},
+        {"title": "Extra Users", "url": "/extra-users", "categoryTitle": "Security"},
+        {"title": "A/C Statement", "url": "/statement", "categoryTitle": "Ledger"},
+        {"title": "Site User Stats", "url": "/site-user-stats", "categoryTitle": "Analytics"},
+        {"title": "Change Password", "url": "/change-password", "categoryTitle": "Settings"},
+    ]
+    filtered = [i for i in items if q in i["title"].lower()] if q else items
+    categories = list({i["categoryTitle"] for i in filtered})
+    return [{"title": cat, "data": [i for i in filtered if i["categoryTitle"] == cat]} for cat in categories]

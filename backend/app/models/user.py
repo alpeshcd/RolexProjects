@@ -16,7 +16,17 @@ class User(Base):
     balance = Column(Float, default=143418.0)
     upline_share = Column(Float, default=25589.0)
     upline = Column(String(50), default="MASTAN365")
+    domain = Column(String(100), default="mastan99.com", nullable=True)
     
+    # Client specifics
+    client_id = Column(Integer, unique=True, index=True, nullable=True)
+    mobile = Column(String(30), default="-", nullable=True)
+    master = Column(String(50), default="MASTAN99M", nullable=True)
+    site = Column(String(50), default="Mastan99", nullable=True)
+    deposit_count = Column(Integer, default=0)
+    source = Column(String(30), default="Manual")
+    referral_code = Column(String(50), nullable=True)
+
     # 2FA Security
     is_active = Column(Boolean, default=True)
     is_2fa_enabled = Column(Boolean, default=True)
@@ -24,3 +34,4 @@ class User(Base):
     
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+

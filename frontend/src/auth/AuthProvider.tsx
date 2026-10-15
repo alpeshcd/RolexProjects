@@ -1,8 +1,8 @@
-import { useRef, useImperativeHandle, forwardRef } from 'react'
+import { useRef, useImperativeHandle, forwardRef, useEffect } from 'react'
 import AuthContext from './AuthContext'
 import appConfig from '@/configs/app.config'
 import { useSessionUser, useToken } from '@/store/authStore'
-import { apiSignIn, apiSignOut, apiSignUp, apiVerify2FA } from '@/services/AuthService'
+import { apiSignIn, apiSignOut, apiSignUp, apiVerify2FA, apiGetMe } from '@/services/AuthService'
 import {
     TOKEN_NAME_IN_STORAGE,
     REFRESH_TOKEN_NAME_IN_STORAGE,
@@ -53,6 +53,24 @@ function AuthProvider({ children }: AuthProviderProps) {
     const authenticated = Boolean(token && signedIn)
     const navigatorRef = useRef<IsolatedNavigatorRef>(null)
 
+    // Sync latest user profile and balance from backend whenever session is active
+    useEffect(() => {
+        if (authenticated && token) {
+            apiGetMe()
+                .then((latestUser) => {
+                    if (latestUser) {
+                        setUser({
+                            ...latestUser,
+                            userName: latestUser.username || latestUser.userName,
+                        })
+                    }
+                })
+                .catch(() => {
+                    // Ignore silently if token refresh handles it
+                })
+        }
+    }, [authenticated, token])
+
     const redirect = () => {
         const search = window.location.search
         const params = new URLSearchParams(search)
@@ -91,11 +109,12 @@ function AuthProvider({ children }: AuthProviderProps) {
 
     const signIn = async (values: SignInCredential): AuthResult => {
         try {
-            const username =
+            const username = (
                 values.username ||
                 values.userName ||
                 values.email ||
-                'admin'
+                ''
+            ).trim()
 
             const resp = await apiSignIn({
                 username,
@@ -123,12 +142,13 @@ function AuthProvider({ children }: AuthProviderProps) {
                     username: resp.user?.username || username,
                     userName: resp.user?.username || resp.user?.userName || username,
                     full_name: resp.user?.full_name || username,
-                    email: resp.user?.email || `${username.toLowerCase()}@rolexpanel.win`,
-                    role: resp.user?.role || 'admin',
-                    authority: resp.user?.authority || [resp.user?.role || 'admin'],
-                    balance: resp.user?.balance,
-                    upline_share: resp.user?.upline_share,
-                    upline: resp.user?.upline,
+                    email: resp.user?.email || '',
+                    role: resp.user?.role || 'user',
+                    authority: resp.user?.authority || [resp.user?.role || 'user'],
+                    balance: resp.user?.balance ?? 0,
+                    upline_share: resp.user?.upline_share ?? 0,
+                    upline: resp.user?.upline ?? '',
+                    is_2fa_enabled: Boolean(resp.user?.is_2fa_enabled),
                 }
 
                 handleSignIn(
@@ -176,7 +196,14 @@ function AuthProvider({ children }: AuthProviderProps) {
 
     const verify2FA = async (otpCode: string): AuthResult => {
         try {
-            const tempToken = localStorage.getItem('temp_2fa_token') || 'demo_temp_token'
+            const tempToken = localStorage.getItem('temp_2fa_token')
+            if (!tempToken) {
+                return {
+                    status: 'failed',
+                    message: '2FA session expired. Please sign in again.',
+                }
+            }
+
             const resp = await apiVerify2FA({
                 temp_token: tempToken,
                 otp_code: otpCode,
@@ -184,18 +211,19 @@ function AuthProvider({ children }: AuthProviderProps) {
 
             const accessToken = resp.access_token || resp.token
             if (resp && accessToken) {
-                const username = localStorage.getItem('temp_2fa_user') || 'MASTAN99M'
+                const savedUser = localStorage.getItem('temp_2fa_user') || ''
                 const profile: User = {
-                    id: resp.user?.id || 1,
-                    username: resp.user?.username || username,
-                    userName: resp.user?.username || resp.user?.userName || username,
-                    full_name: resp.user?.full_name || 'Mastan Admin',
-                    email: resp.user?.email || 'admin@rolexpanel.win',
+                    id: resp.user?.id,
+                    username: resp.user?.username || savedUser,
+                    userName: resp.user?.username || resp.user?.userName || savedUser,
+                    full_name: resp.user?.full_name || savedUser,
+                    email: resp.user?.email || '',
                     role: resp.user?.role || 'supermaster',
                     authority: resp.user?.authority || [resp.user?.role || 'admin'],
-                    balance: resp.user?.balance,
-                    upline_share: resp.user?.upline_share,
-                    upline: resp.user?.upline,
+                    balance: resp.user?.balance ?? 0,
+                    upline_share: resp.user?.upline_share ?? 0,
+                    upline: resp.user?.upline ?? '',
+                    is_2fa_enabled: Boolean(resp.user?.is_2fa_enabled),
                 }
 
                 handleSignIn(

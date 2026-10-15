@@ -1,5 +1,14 @@
 from fastapi import APIRouter
-from app.api.v1.endpoints import auth
+from app.api.v1.endpoints import auth, users, dashboard, global_search, accounts, deposits, withdrawals, statements
 
 api_router = APIRouter()
 api_router.include_router(auth.router, prefix="/auth", tags=["Authentication"])
+api_router.include_router(users.router, prefix="/users", tags=["Users & Clients"])
+api_router.include_router(dashboard.router, prefix="/dashboard", tags=["Dashboard"])
+api_router.include_router(global_search.router, prefix="/global-search", tags=["Global Search"])
+api_router.include_router(accounts.router, prefix="/accounts", tags=["Bank & Payment Accounts"])
+api_router.include_router(deposits.router, prefix="/deposits", tags=["Deposits & UTR Verification"])
+api_router.include_router(withdrawals.router, prefix="/withdrawals", tags=["Withdrawals & Payouts"])
+api_router.include_router(statements.router, prefix="/statements", tags=["Statements & Stats"])
+
+

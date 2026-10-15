@@ -1,11 +1,25 @@
 import RolexPlaceholderView from '../RolexPlaceholderView'
+import ClientsViewComponent from './ClientsView'
+import AddClientsViewComponent from './AddClientsView'
+import GlobalSearchViewComponent from './GlobalSearchView'
 
-export const GlobalSearchView = () => <RolexPlaceholderView title="Global Search" />
-export const ClientsView = () => <RolexPlaceholderView title="Clients" subtitle="Client listings and balance allocations will be rendered here." />
-export const AccountsView = () => <RolexPlaceholderView title="Accounts" subtitle="Account statements and ledger balances will be rendered here." />
-export const DepositView = () => <RolexPlaceholderView title="Deposit" subtitle="Deposit requests, banking channels and receipts." />
-export const WithdrawView = () => <RolexPlaceholderView title="Withdraw" subtitle="Withdrawal requests, approvals and payouts." />
-export const ExtraUsersView = () => <RolexPlaceholderView title="Extra Users" subtitle="Sub-agents and administrative roles management." />
-export const StatementView = () => <RolexPlaceholderView title="A/C Statement" subtitle="Detailed account statement and transaction records." />
-export const SiteStatsView = () => <RolexPlaceholderView title="Site User Stats" subtitle="Real-time site user analytics and traffic numbers." />
-export const ChangePasswordView = () => <RolexPlaceholderView title="Change Password" subtitle="Update current administrative password." />
+import AccountsViewComponent from './AccountsView'
+import AddAccountViewComponent from './AddAccountView'
+import DepositViewComponent from './DepositView'
+import WithdrawViewComponent from './WithdrawView'
+import StatementViewComponent from './StatementView'
+import SiteStatsViewComponent from './SiteStatsView'
+import ExtraUsersViewComponent from './ExtraUsersView'
+import ChangePasswordViewComponent from './ChangePasswordView'
+
+export const GlobalSearchView = GlobalSearchViewComponent
+export const ClientsView = ClientsViewComponent
+export const AddClientsView = AddClientsViewComponent
+export const AccountsView = AccountsViewComponent
+export const AddAccountView = AddAccountViewComponent
+export const DepositView = DepositViewComponent
+export const WithdrawView = WithdrawViewComponent
+export const ExtraUsersView = ExtraUsersViewComponent
+export const StatementView = StatementViewComponent
+export const SiteStatsView = SiteStatsViewComponent
+export const ChangePasswordView = ChangePasswordViewComponent

@@ -22,7 +22,7 @@ const Verify2FA = () => {
     const targetUser =
         (typeof window !== 'undefined' &&
             localStorage.getItem('temp_2fa_user')) ||
-        'MASTAN99M'
+        'Verification'
 
     // 30-second Authenticator OTP refresh countdown
     useEffect(() => {
@@ -52,16 +52,11 @@ const Verify2FA = () => {
         } catch (err: any) {
             setError(
                 err?.message ||
-                    'Invalid OTP code. Please enter the current code from your Authenticator app (test code: 123456).',
+                    'Invalid OTP code. Please enter the current code from your Authenticator app.',
             )
         } finally {
             setLoading(false)
         }
-    }
-
-    const fillDemoOtp = () => {
-        setOtpCode('123456')
-        setError(null)
     }
 
     return (
@@ -161,17 +156,6 @@ const Verify2FA = () => {
                                     />
                                 </FormItem>
 
-                                {/* Auto-fill helper link */}
-                                <div className="flex items-center justify-between text-xs text-gray-400 pb-1">
-                                    <span>Testing account?</span>
-                                    <button
-                                        type="button"
-                                        onClick={fillDemoOtp}
-                                        className="font-semibold text-teal-600 dark:text-teal-400 hover:underline transition-colors"
-                                    >
-                                        Auto-fill test code (123456)
-                                    </button>
-                                </div>
 
                                 {/* Login Action Button matching screenshot */}
                                 <Button
