@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="rolexBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#006666"/>
+      <stop offset="100%" stop-color="#004d4d"/>
+    </linearGradient>
+    <linearGradient id="rolexGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFF275"/>
+      <stop offset="50%" stop-color="#E5A93C"/>
+      <stop offset="100%" stop-color="#BF811D"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#rolexBg)"/>
+  <!-- Iconic Rolex 5-point Crown -->
+  <g transform="translate(6, 5)">
+    <circle cx="6" cy="15" r="3" fill="url(#rolexGold)"/>
+    <circle cx="15.5" cy="9" r="3" fill="url(#rolexGold)"/>
+    <circle cx="26" cy="5" r="3.5" fill="url(#rolexGold)"/>
+    <circle cx="36.5" cy="9" r="3" fill="url(#rolexGold)"/>
+    <circle cx="46" cy="15" r="3" fill="url(#rolexGold)"/>
+    <path d="M 6,18 L 13.5,37 L 19,24 L 26,39 L 33,24 L 38.5,37 L 46,18 L 41.5,43 L 10.5,43 Z" fill="url(#rolexGold)"/>
+    <ellipse cx="26" cy="45" rx="16.5" ry="3.5" fill="url(#rolexGold)"/>
+  </g>
+</svg>

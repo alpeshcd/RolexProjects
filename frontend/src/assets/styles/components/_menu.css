@@ -1,8 +1,8 @@
 .menu-title {
-  @apply uppercase font-semibold px-3 mt-4 mb-2;
+  @apply uppercase font-semibold text-[11px] tracking-[0.08em] px-3 mt-4 mb-2;
 
   &.menu-title-light {
-    @apply text-gray-500;
+    @apply text-ink-3;
   }
 
   &.menu-title-dark {
@@ -15,11 +15,11 @@
 }
 
 .menu-light {
-  @apply bg-white;
+  @apply bg-surface;
 }
 
 .menu-dark {
-  @apply bg-gray-800;
+  @apply bg-surface;
 }
 
 .menu-transparent {

@@ -1,6 +1,6 @@
 @import "./assets/styles/app.css";
 
-/* Modern Luxury Scrollbar */
+/* Subtle scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -11,31 +11,92 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.35);
+  background: var(--line-strong);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(16, 185, 129, 0.6);
+  background: var(--ink-3);
 }
 
-/* Glassmorphism & Luxury Card Effects */
-.rolex-glass {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+/* Smooth light/dark switch for the main chrome */
+.app-layout-collapsible-side,
+.side-nav,
+.header,
+.ant-card,
+.panel {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
-.dark .rolex-glass {
-  background: rgba(15, 23, 42, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+/* Ant Design refinements */
+.ant-card {
+  box-shadow: none !important;
 }
 
-.rolex-glow-emerald {
-  box-shadow: 0 0 25px -5px rgba(16, 185, 129, 0.2);
+.ant-card-bordered,
+.ant-card-bordered .ant-card-head {
+  border-color: var(--line) !important;
 }
 
-.rolex-glow-amber {
-  box-shadow: 0 0 25px -5px rgba(245, 158, 11, 0.2);
+.ant-card .ant-card-head-title {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.ant-table-wrapper .ant-table {
+  border-radius: 10px;
+}
+
+.ant-table-wrapper .ant-table-thead > tr > th {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ant-statistic .ant-statistic-content {
+  letter-spacing: -0.01em;
+}
+
+.ant-tag {
+  font-weight: 500;
+}
+
+/* Soft tinted tags tuned to the palette (Tag color="blue" etc.) */
+.ant-tag-blue { --tag-tone: var(--tag-blue); }
+.ant-tag-geekblue { --tag-tone: var(--tag-geekblue); }
+.ant-tag-cyan { --tag-tone: var(--tag-cyan); }
+.ant-tag-green { --tag-tone: var(--tag-green); }
+.ant-tag-lime { --tag-tone: var(--tag-lime); }
+.ant-tag-gold { --tag-tone: var(--tag-gold); }
+.ant-tag-yellow { --tag-tone: var(--tag-yellow); }
+.ant-tag-orange { --tag-tone: var(--tag-orange); }
+.ant-tag-volcano { --tag-tone: var(--tag-volcano); }
+.ant-tag-red { --tag-tone: var(--tag-red); }
+.ant-tag-magenta { --tag-tone: var(--tag-magenta); }
+.ant-tag-pink { --tag-tone: var(--tag-pink); }
+.ant-tag-purple { --tag-tone: var(--tag-purple); }
+.ant-tag-success { --tag-tone: var(--success); }
+.ant-tag-processing { --tag-tone: var(--info); }
+.ant-tag-error { --tag-tone: var(--error); }
+.ant-tag-warning { --tag-tone: var(--warning); }
+
+.ant-tag:is(
+    .ant-tag-blue, .ant-tag-geekblue, .ant-tag-cyan, .ant-tag-green, .ant-tag-lime,
+    .ant-tag-gold, .ant-tag-yellow, .ant-tag-orange, .ant-tag-volcano, .ant-tag-red,
+    .ant-tag-magenta, .ant-tag-pink, .ant-tag-purple,
+    .ant-tag-success, .ant-tag-processing, .ant-tag-error, .ant-tag-warning
+  ) {
+  color: var(--tag-tone) !important;
+  background: color-mix(in srgb, var(--tag-tone) 10%, transparent) !important;
+  border-color: color-mix(in srgb, var(--tag-tone) 22%, transparent) !important;
+}
+
+.ant-tag:is(
+    .ant-tag-blue, .ant-tag-geekblue, .ant-tag-cyan, .ant-tag-green, .ant-tag-lime,
+    .ant-tag-gold, .ant-tag-yellow, .ant-tag-orange, .ant-tag-volcano, .ant-tag-red,
+    .ant-tag-magenta, .ant-tag-pink, .ant-tag-purple,
+    .ant-tag-success, .ant-tag-processing, .ant-tag-error, .ant-tag-warning
+  ) .anticon {
+  color: inherit;
 }

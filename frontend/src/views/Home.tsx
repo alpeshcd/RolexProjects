@@ -90,10 +90,19 @@ const Home = () => {
     const withdrawalApprovalRate = Math.round((stats.approved_withdrawals / totalWithdrawalAmt) * 100)
     const netTurnover = (stats.total_deposits || 0) - (stats.total_withdrawals || 0)
 
+    const quickLinks = [
+        { label: 'Clients', meta: `${stats.new_clients} users`, path: '/clients', icon: <TeamOutlined /> },
+        { label: 'Deposit List', meta: `${stats.total_deposits_count} deposits`, path: '/deposit', icon: <DollarCircleOutlined /> },
+        { label: 'UTR Entry', meta: 'Verification', path: '/deposits/utr-entry', icon: <CheckCircleOutlined /> },
+        { label: 'Withdrawals', meta: `${stats.pending_withdrawals_count} pending`, path: '/withdraw', icon: <ArrowUpOutlined /> },
+        { label: 'Bank Accounts', meta: 'Gateways', path: '/accounts', icon: <BankOutlined /> },
+        { label: 'Global Search', meta: 'Lookup', path: '/global-search', icon: <SearchOutlined /> },
+    ]
+
     return (
-        <div className="space-y-5 max-w-[1600px] mx-auto">
+        <div className="space-y-4 w-full">
             {/* Page Header with Breadcrumb and Actions */}
-            <div className="bg-white dark:bg-[#1f1f1f] p-5 rounded-lg border border-[#f0f0f0] dark:border-[#303030] shadow-[0_1px_2px_0_rgba(0,0,0,0.03)] flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="panel px-5 py-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
                 <div>
                     <Breadcrumb
                         items={[
@@ -103,10 +112,10 @@ const Home = () => {
                         className="text-xs mb-1"
                     />
                     <div className="flex items-center gap-2">
-                        <Title level={4} style={{ margin: 0 }}>
+                        <Title level={4} style={{ margin: 0, fontSize: '18px' }}>
                             Operations Dashboard
                         </Title>
-                        <Tag color="blue">{userRole}</Tag>
+                        <Tag color="cyan">{userRole}</Tag>
                     </div>
                     <Text type="secondary" className="text-xs">
                         Welcome back, <strong>{username}</strong>. Real-time operations and payment settlement ledger.
@@ -136,107 +145,48 @@ const Home = () => {
                 </Space>
             </div>
 
-            {/* Quick Navigation Cards (Simple, Decent Ant Design Look) */}
+            {/* Quick Navigation */}
             <div>
-                <Text strong className="text-xs uppercase text-gray-500 mb-2 block tracking-wider">
-                    Quick Navigation
-                </Text>
+                <div className="section-label mb-2.5">Quick Navigation</div>
                 <Row gutter={[12, 12]}>
-                    <Col xs={12} sm={8} lg={4}>
-                        <Card
-                            hoverable
-                            size="small"
-                            onClick={() => navigate('/clients')}
-                            className="text-center rounded-lg border-[#f0f0f0] dark:border-[#303030]"
-                        >
-                            <TeamOutlined className="text-xl text-blue-500 mb-1 block" />
-                            <Text strong className="text-xs block">Clients</Text>
-                            <Tag color="blue" className="mt-1 m-0 text-[10px]">{stats.new_clients} Registered</Tag>
-                        </Card>
-                    </Col>
-                    <Col xs={12} sm={8} lg={4}>
-                        <Card
-                            hoverable
-                            size="small"
-                            onClick={() => navigate('/deposit')}
-                            className="text-center rounded-lg border-[#f0f0f0] dark:border-[#303030]"
-                        >
-                            <DollarCircleOutlined className="text-xl text-green-500 mb-1 block" />
-                            <Text strong className="text-xs block">Deposit List</Text>
-                            <Tag color="green" className="mt-1 m-0 text-[10px]">{stats.total_deposits_count} Deposits</Tag>
-                        </Card>
-                    </Col>
-                    <Col xs={12} sm={8} lg={4}>
-                        <Card
-                            hoverable
-                            size="small"
-                            onClick={() => navigate('/deposits/utr-entry')}
-                            className="text-center rounded-lg border-[#f0f0f0] dark:border-[#303030]"
-                        >
-                            <CheckCircleOutlined className="text-xl text-cyan-500 mb-1 block" />
-                            <Text strong className="text-xs block">UTR Entry</Text>
-                            <Tag color="cyan" className="mt-1 m-0 text-[10px]">Verification</Tag>
-                        </Card>
-                    </Col>
-                    <Col xs={12} sm={8} lg={4}>
-                        <Card
-                            hoverable
-                            size="small"
-                            onClick={() => navigate('/withdraw')}
-                            className="text-center rounded-lg border-[#f0f0f0] dark:border-[#303030]"
-                        >
-                            <ArrowUpOutlined className="text-xl text-rose-500 mb-1 block" />
-                            <Text strong className="text-xs block">Withdrawals</Text>
-                            <Tag color="volcano" className="mt-1 m-0 text-[10px]">{stats.pending_withdrawals_count} Pending</Tag>
-                        </Card>
-                    </Col>
-                    <Col xs={12} sm={8} lg={4}>
-                        <Card
-                            hoverable
-                            size="small"
-                            onClick={() => navigate('/accounts')}
-                            className="text-center rounded-lg border-[#f0f0f0] dark:border-[#303030]"
-                        >
-                            <BankOutlined className="text-xl text-purple-500 mb-1 block" />
-                            <Text strong className="text-xs block">Bank Accounts</Text>
-                            <Tag color="purple" className="mt-1 m-0 text-[10px]">Gateways</Tag>
-                        </Card>
-                    </Col>
-                    <Col xs={12} sm={8} lg={4}>
-                        <Card
-                            hoverable
-                            size="small"
-                            onClick={() => navigate('/global-search')}
-                            className="text-center rounded-lg border-[#f0f0f0] dark:border-[#303030]"
-                        >
-                            <SearchOutlined className="text-xl text-gray-500 mb-1 block" />
-                            <Text strong className="text-xs block">Global Search</Text>
-                            <Tag className="mt-1 m-0 text-[10px]">Cross-Portal</Tag>
-                        </Card>
-                    </Col>
+                    {quickLinks.map((item) => (
+                        <Col key={item.path} xs={12} sm={8} lg={4}>
+                            <button
+                                type="button"
+                                onClick={() => navigate(item.path)}
+                                className="group w-full panel p-3.5 flex flex-col items-start gap-3 text-left hover:border-primary transition-colors"
+                            >
+                                <span className="icon-chip h-9 w-9 text-base shrink-0 group-hover:bg-primary group-hover:text-white transition-colors">
+                                    {item.icon}
+                                </span>
+                                <span className="min-w-0 w-full">
+                                    <span className="block text-[13px] font-semibold text-ink truncate">{item.label}</span>
+                                    <span className="block text-[11px] text-ink-3 truncate">{item.meta}</span>
+                                </span>
+                            </button>
+                        </Col>
+                    ))}
                 </Row>
             </div>
 
             {/* Core Financial Performance Statistics */}
             <div>
-                <Text strong className="text-xs uppercase text-gray-500 mb-2 block tracking-wider">
-                    Deposit & Payout Metrics
-                </Text>
-                <Row gutter={[16, 16]}>
+                <div className="section-label mb-2.5">Deposit & Payout Metrics</div>
+                <Row gutter={[12, 12]}>
                     <Col xs={24} sm={12} lg={6}>
                         <Card
                             size="small"
-                            className="rounded-lg border-[#f0f0f0] dark:border-[#303030] shadow-[0_1px_2px_0_rgba(0,0,0,0.03)]"
+                            className="border-line"
                         >
                             <Statistic
-                                title={<span className="text-xs text-gray-500">Total Deposits</span>}
+                                title={<span className="text-xs text-ink-3">Total Deposits</span>}
                                 value={stats.total_deposits}
                                 prefix="₹"
-                                valueStyle={{ fontWeight: 700, fontSize: '24px' }}
+                                valueStyle={{ fontWeight: 600, fontSize: '18px' }}
                             />
-                            <Divider style={{ margin: '10px 0' }} />
+                            <Divider style={{ margin: '8px 0' }} />
                             <div className="flex items-center justify-between text-xs">
-                                <span className="text-gray-500">{stats.total_deposits_count} Requests</span>
+                                <span className="text-ink-3">{stats.total_deposits_count} Requests</span>
                                 <Tag color="blue">{depositApprovalRate}% Rate</Tag>
                             </div>
                         </Card>
@@ -245,17 +195,17 @@ const Home = () => {
                     <Col xs={24} sm={12} lg={6}>
                         <Card
                             size="small"
-                            className="rounded-lg border-[#f0f0f0] dark:border-[#303030] shadow-[0_1px_2px_0_rgba(0,0,0,0.03)]"
+                            className="border-line"
                         >
                             <Statistic
-                                title={<span className="text-xs text-gray-500">Approved Deposits</span>}
+                                title={<span className="text-xs text-ink-3">Approved Deposits</span>}
                                 value={stats.approved_deposits}
                                 prefix="₹"
-                                valueStyle={{ fontWeight: 700, fontSize: '24px', color: '#52c41a' }}
+                                valueStyle={{ fontWeight: 600, fontSize: '18px', color: 'var(--success)' }}
                             />
-                            <Divider style={{ margin: '10px 0' }} />
+                            <Divider style={{ margin: '8px 0' }} />
                             <div className="flex items-center justify-between text-xs">
-                                <span className="text-gray-500">{stats.approved_deposits_count} Approved</span>
+                                <span className="text-ink-3">{stats.approved_deposits_count} Approved</span>
                                 <Tag color="green">Settled</Tag>
                             </div>
                         </Card>
@@ -264,17 +214,17 @@ const Home = () => {
                     <Col xs={24} sm={12} lg={6}>
                         <Card
                             size="small"
-                            className="rounded-lg border-[#f0f0f0] dark:border-[#303030] shadow-[0_1px_2px_0_rgba(0,0,0,0.03)]"
+                            className="border-line"
                         >
                             <Statistic
-                                title={<span className="text-xs text-gray-500">Rejected Deposits</span>}
+                                title={<span className="text-xs text-ink-3">Rejected Deposits</span>}
                                 value={stats.rejected_deposits}
                                 prefix="₹"
-                                valueStyle={{ fontWeight: 700, fontSize: '24px', color: '#ff4d4f' }}
+                                valueStyle={{ fontWeight: 600, fontSize: '18px', color: 'var(--error)' }}
                             />
-                            <Divider style={{ margin: '10px 0' }} />
+                            <Divider style={{ margin: '8px 0' }} />
                             <div className="flex items-center justify-between text-xs">
-                                <span className="text-gray-500">{stats.rejected_deposits_count} Rejected</span>
+                                <span className="text-ink-3">{stats.rejected_deposits_count} Rejected</span>
                                 <Tag color="red">Unmatched</Tag>
                             </div>
                         </Card>
@@ -283,17 +233,17 @@ const Home = () => {
                     <Col xs={24} sm={12} lg={6}>
                         <Card
                             size="small"
-                            className="rounded-lg border-[#f0f0f0] dark:border-[#303030] shadow-[0_1px_2px_0_rgba(0,0,0,0.03)]"
+                            className="border-line"
                         >
                             <Statistic
-                                title={<span className="text-xs text-gray-500">Total Withdrawals</span>}
+                                title={<span className="text-xs text-ink-3">Total Withdrawals</span>}
                                 value={stats.total_withdrawals}
                                 prefix="₹"
-                                valueStyle={{ fontWeight: 700, fontSize: '24px' }}
+                                valueStyle={{ fontWeight: 600, fontSize: '18px' }}
                             />
-                            <Divider style={{ margin: '10px 0' }} />
+                            <Divider style={{ margin: '8px 0' }} />
                             <div className="flex items-center justify-between text-xs">
-                                <span className="text-gray-500">{stats.total_withdrawals_count} Payouts</span>
+                                <span className="text-ink-3">{stats.total_withdrawals_count} Payouts</span>
                                 <Tag color="purple">{withdrawalApprovalRate}% Paid</Tag>
                             </div>
                         </Card>
@@ -303,25 +253,24 @@ const Home = () => {
 
             {/* Operational Payouts & FTD Row */}
             <div>
-                <Row gutter={[16, 16]}>
+                <Row gutter={[12, 12]}>
                     <Col xs={24} sm={12} lg={6}>
                         <Card
                             size="small"
-                            className="rounded-lg border-amber-300 dark:border-amber-700 bg-amber-50/20 dark:bg-amber-950/10 shadow-[0_1px_2px_0_rgba(0,0,0,0.03)]"
+                            className="border-line"
                         >
                             <Statistic
-                                title={<span className="text-xs font-semibold text-amber-700 dark:text-amber-400">Pending Withdrawals</span>}
+                                title={<span className="text-xs text-warning font-medium">Pending Withdrawals</span>}
                                 value={stats.pending_withdrawals}
                                 prefix="₹"
-                                valueStyle={{ fontWeight: 700, fontSize: '24px', color: '#d46b08' }}
+                                valueStyle={{ fontWeight: 600, fontSize: '18px', color: 'var(--warning)' }}
                             />
-                            <Divider style={{ margin: '10px 0' }} />
+                            <Divider style={{ margin: '8px 0' }} />
                             <div className="flex items-center justify-between text-xs">
-                                <span className="text-gray-500">{stats.pending_withdrawals_count} Payouts Pending</span>
+                                <span className="text-ink-3">{stats.pending_withdrawals_count} Pending</span>
                                 <Button
                                     size="small"
                                     type="primary"
-                                    danger
                                     onClick={() => navigate('/withdraw')}
                                     className="text-xs h-6 px-2"
                                 >
@@ -334,17 +283,17 @@ const Home = () => {
                     <Col xs={24} sm={12} lg={6}>
                         <Card
                             size="small"
-                            className="rounded-lg border-[#f0f0f0] dark:border-[#303030] shadow-[0_1px_2px_0_rgba(0,0,0,0.03)]"
+                            className="border-line"
                         >
                             <Statistic
-                                title={<span className="text-xs text-gray-500">Approved Withdrawals</span>}
+                                title={<span className="text-xs text-ink-3">Approved Withdrawals</span>}
                                 value={stats.approved_withdrawals}
                                 prefix="₹"
-                                valueStyle={{ fontWeight: 700, fontSize: '24px', color: '#52c41a' }}
+                                valueStyle={{ fontWeight: 600, fontSize: '18px', color: 'var(--success)' }}
                             />
-                            <Divider style={{ margin: '10px 0' }} />
+                            <Divider style={{ margin: '8px 0' }} />
                             <div className="flex items-center justify-between text-xs">
-                                <span className="text-gray-500">{stats.approved_withdrawals_count} Disbursed</span>
+                                <span className="text-ink-3">{stats.approved_withdrawals_count} Disbursed</span>
                                 <Tag color="green">Cleared</Tag>
                             </div>
                         </Card>
@@ -353,17 +302,17 @@ const Home = () => {
                     <Col xs={24} sm={12} lg={6}>
                         <Card
                             size="small"
-                            className="rounded-lg border-[#f0f0f0] dark:border-[#303030] shadow-[0_1px_2px_0_rgba(0,0,0,0.03)]"
+                            className="border-line"
                         >
                             <Statistic
-                                title={<span className="text-xs text-gray-500">Rejected Withdrawals</span>}
+                                title={<span className="text-xs text-ink-3">Rejected Withdrawals</span>}
                                 value={stats.rejected_withdrawals}
                                 prefix="₹"
-                                valueStyle={{ fontWeight: 700, fontSize: '24px', color: '#ff4d4f' }}
+                                valueStyle={{ fontWeight: 600, fontSize: '18px', color: 'var(--error)' }}
                             />
-                            <Divider style={{ margin: '10px 0' }} />
+                            <Divider style={{ margin: '8px 0' }} />
                             <div className="flex items-center justify-between text-xs">
-                                <span className="text-gray-500">{stats.rejected_withdrawals_count} Cancelled</span>
+                                <span className="text-ink-3">{stats.rejected_withdrawals_count} Cancelled</span>
                                 <Tag>Void</Tag>
                             </div>
                         </Card>
@@ -372,17 +321,17 @@ const Home = () => {
                     <Col xs={24} sm={12} lg={6}>
                         <Card
                             size="small"
-                            className="rounded-lg border-[#f0f0f0] dark:border-[#303030] shadow-[0_1px_2px_0_rgba(0,0,0,0.03)]"
+                            className="border-line"
                         >
                             <Statistic
-                                title={<span className="text-xs text-gray-500">Total FTD</span>}
+                                title={<span className="text-xs text-ink-3">Total FTD</span>}
                                 value={stats.total_ftd}
                                 prefix="₹"
-                                valueStyle={{ fontWeight: 700, fontSize: '24px' }}
+                                valueStyle={{ fontWeight: 600, fontSize: '18px' }}
                             />
-                            <Divider style={{ margin: '10px 0' }} />
+                            <Divider style={{ margin: '8px 0' }} />
                             <div className="flex items-center justify-between text-xs">
-                                <span className="text-gray-500">{stats.total_ftd_count} First Deposits</span>
+                                <span className="text-ink-3">{stats.total_ftd_count} First Deposits</span>
                                 <Tag color="cyan">Conversion</Tag>
                             </div>
                         </Card>
@@ -391,12 +340,13 @@ const Home = () => {
             </div>
 
             {/* Ant Design Analytics & Settlement Breakdown */}
-            <Row gutter={[16, 16]}>
+            <Row gutter={[12, 12]}>
                 <Col xs={24} lg={16}>
                     <Card
+                        size="small"
                         title={
                             <div className="flex items-center gap-2">
-                                <FundOutlined className="text-blue-500" />
+                                <span className="icon-chip h-7 w-7 text-sm"><FundOutlined /></span>
                                 <span>Volume & Clearance Performance</span>
                             </div>
                         }
@@ -405,7 +355,7 @@ const Home = () => {
                                 Net: ₹{Number(netTurnover).toLocaleString('en-IN')}
                             </Tag>
                         }
-                        className="rounded-lg border-[#f0f0f0] dark:border-[#303030] shadow-[0_1px_2px_0_rgba(0,0,0,0.03)]"
+                        className="border-line"
                     >
                         <div className="space-y-4">
                             <div>
@@ -415,7 +365,7 @@ const Home = () => {
                                 </div>
                                 <Progress
                                     percent={depositApprovalRate}
-                                    strokeColor="#52c41a"
+                                    strokeColor="var(--success)"
                                     status="active"
                                 />
                             </div>
@@ -427,7 +377,7 @@ const Home = () => {
                                 </div>
                                 <Progress
                                     percent={withdrawalApprovalRate}
-                                    strokeColor="#1677ff"
+                                    strokeColor="var(--primary)"
                                 />
                             </div>
 
@@ -436,23 +386,23 @@ const Home = () => {
                             <Row gutter={16}>
                                 <Col span={8}>
                                     <Statistic
-                                        title={<span className="text-xs text-gray-500">Processed Txns</span>}
+                                        title={<span className="text-xs text-ink-3">Processed Txns</span>}
                                         value={stats.total_deposits_count + stats.total_withdrawals_count}
                                         valueStyle={{ fontSize: '18px', fontWeight: 600 }}
                                     />
                                 </Col>
                                 <Col span={8}>
                                     <Statistic
-                                        title={<span className="text-xs text-gray-500">Cleared Deposits</span>}
+                                        title={<span className="text-xs text-ink-3">Cleared Deposits</span>}
                                         value={stats.approved_deposits_count}
-                                        valueStyle={{ fontSize: '18px', fontWeight: 600, color: '#52c41a' }}
+                                        valueStyle={{ fontSize: '18px', fontWeight: 600, color: 'var(--success)' }}
                                     />
                                 </Col>
                                 <Col span={8}>
                                     <Statistic
-                                        title={<span className="text-xs text-gray-500">Cleared Payouts</span>}
+                                        title={<span className="text-xs text-ink-3">Cleared Payouts</span>}
                                         value={stats.approved_withdrawals_count}
-                                        valueStyle={{ fontSize: '18px', fontWeight: 600, color: '#1677ff' }}
+                                        valueStyle={{ fontSize: '18px', fontWeight: 600, color: 'var(--info)' }}
                                     />
                                 </Col>
                             </Row>
@@ -464,7 +414,7 @@ const Home = () => {
                     <Card
                         title={
                             <div className="flex items-center gap-2">
-                                <BankOutlined className="text-green-600" />
+                                <span className="icon-chip h-7 w-7 text-sm"><BankOutlined /></span>
                                 <span>Banking Gateways</span>
                             </div>
                         }
@@ -478,25 +428,26 @@ const Home = () => {
                                 Manage <RightOutlined />
                             </Button>
                         }
-                        className="rounded-lg border-[#f0f0f0] dark:border-[#303030] shadow-[0_1px_2px_0_rgba(0,0,0,0.03)]"
+                        className="border-line"
+                        size="small"
                     >
                         <div className="space-y-3">
-                            <div className="flex items-center justify-between p-2.5 rounded bg-gray-50 dark:bg-gray-800/40 border border-gray-100 dark:border-gray-800">
+                            <div className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-surface-2 border border-line">
                                 <Text strong className="text-xs">ICICI Corporate Bank</Text>
-                                <Badge status="success" text={<span className="text-xs text-gray-600 dark:text-gray-400">Active</span>} />
+                                <Badge status="success" text={<span className="text-xs text-ink-2">Active</span>} />
                             </div>
-                            <div className="flex items-center justify-between p-2.5 rounded bg-gray-50 dark:bg-gray-800/40 border border-gray-100 dark:border-gray-800">
+                            <div className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-surface-2 border border-line">
                                 <Text strong className="text-xs">HDFC Gateway Account</Text>
-                                <Badge status="success" text={<span className="text-xs text-gray-600 dark:text-gray-400">Active</span>} />
+                                <Badge status="success" text={<span className="text-xs text-ink-2">Active</span>} />
                             </div>
-                            <div className="flex items-center justify-between p-2.5 rounded bg-gray-50 dark:bg-gray-800/40 border border-gray-100 dark:border-gray-800">
+                            <div className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-surface-2 border border-line">
                                 <Text strong className="text-xs">UPI Auto-Reconciliation</Text>
-                                <Badge status="success" text={<span className="text-xs text-gray-600 dark:text-gray-400">Active</span>} />
+                                <Badge status="success" text={<span className="text-xs text-ink-2">Active</span>} />
                             </div>
                             <Divider style={{ margin: '8px 0' }} />
-                            <div className="flex items-center justify-between text-xs text-gray-500">
+                            <div className="flex items-center justify-between text-xs text-ink-3">
                                 <span className="flex items-center gap-1">
-                                    <SafetyCertificateOutlined className="text-green-600" /> 256-Bit SSL Enforced
+                                    <SafetyCertificateOutlined className="text-primary" /> 256-Bit SSL Enforced
                                 </span>
                                 <Badge status="processing" text={<span className="text-xs">Online</span>} />
                             </div>

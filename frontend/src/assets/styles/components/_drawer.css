@@ -1,5 +1,5 @@
 .drawer-content {
-  @apply bg-white dark:bg-gray-800 shadow-xl absolute flex flex-col;
+  @apply bg-white dark:bg-gray-800 shadow-sm border-l border-gray-200 dark:border-gray-700 absolute flex flex-col;
 
   &.vertical {
     @apply h-full;

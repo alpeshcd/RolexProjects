@@ -1,9 +1,9 @@
 import React from 'react'
-import { useNavigate } from 'react-router-dom'
-import Card from '@/components/ui/Card'
-import Tag from '@/components/ui/Tag'
-import Button from '@/components/ui/Button'
-import { MdArrowBack } from 'react-icons/md'
+import { useNavigate, Link } from 'react-router-dom'
+import { Card, Tag, Button, Breadcrumb, Typography } from 'antd'
+import { ArrowLeftOutlined } from '@ant-design/icons'
+
+const { Title, Text } = Typography
 
 interface RolexPlaceholderProps {
     title: string
@@ -17,47 +17,49 @@ const RolexPlaceholderView: React.FC<RolexPlaceholderProps> = ({
     const navigate = useNavigate()
 
     return (
-        <div className="flex-1 w-full p-4 sm:p-6 bg-slate-50/70 dark:bg-gray-900 min-h-[calc(100vh-64px)]">
+        <div className="space-y-4 w-full">
             {/* Top Bar Row: Title & Breadcrumbs */}
-            <div className="flex items-center justify-between mb-6 pb-2 border-b border-gray-200/80 dark:border-gray-800">
-                <div className="flex items-center gap-2">
-                    <h1 className="text-sm font-black tracking-wide text-gray-800 dark:text-gray-100 uppercase">
-                        {title}
-                    </h1>
-                    <Tag className="bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-gray-300 font-bold text-[10px]">
-                        MODULE READY
-                    </Tag>
+            <div className="panel px-5 py-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div>
+                    <Breadcrumb
+                        items={[
+                            { title: <Link to="/home">Home</Link> },
+                            { title: title },
+                        ]}
+                        className="text-xs mb-1"
+                    />
+                    <div className="flex items-center gap-2">
+                        <Title level={4} style={{ margin: 0, fontSize: '18px' }}>
+                            {title}
+                        </Title>
+                        <Tag color="cyan">Module</Tag>
+                    </div>
                 </div>
-                <div className="text-xs text-gray-500 font-medium">
-                    <span className="hover:text-teal-700 cursor-pointer" onClick={() => navigate('/home')}>Home</span>
-                    <span className="mx-1.5 text-gray-400">/</span>
-                    <span className="text-teal-700 dark:text-teal-400 font-semibold">{title}</span>
-                </div>
+
+                <Button
+                    icon={<ArrowLeftOutlined />}
+                    onClick={() => navigate('/home')}
+                >
+                    Back to Dashboard
+                </Button>
             </div>
 
-            {/* Content Container using Theme Card */}
-            <Card className="shadow-sm border-gray-200/80 dark:border-gray-800 rounded-2xl text-center py-8">
-                <div className="inline-flex p-4 rounded-2xl bg-gradient-to-tr from-teal-500/10 to-cyan-500/10 text-teal-700 dark:text-teal-400 mb-4 text-2xl font-black">
-                    ROLEX PANEL
-                </div>
-                <h2 className="text-xl font-black text-gray-800 dark:text-gray-100 mb-2">
+            {/* Content Container using Ant Design Card */}
+            <Card size="small" className="border border-line text-center py-10">
+                <Title level={4} style={{ marginBottom: 8 }}>
                     {title} Module
-                </h2>
-                <p className="text-xs text-gray-500 dark:text-gray-400 max-w-md mx-auto mb-6">
+                </Title>
+                <Text type="secondary" className="text-xs block max-w-md mx-auto mb-6">
                     {subtitle}
-                </p>
+                </Text>
                 <div className="flex items-center justify-center gap-3">
-                    <Tag className="px-3 py-1 bg-teal-50 border-teal-200 text-teal-700 text-xs font-mono">
-                        Awaiting Screenshot Specification
-                    </Tag>
+                    <Tag color="blue">Rolex Operations</Tag>
                     <Button
-                        size="sm"
-                        variant="plain"
+                        type="primary"
+                        icon={<ArrowLeftOutlined />}
                         onClick={() => navigate('/home')}
-                        icon={<MdArrowBack />}
-                        className="text-xs font-bold"
                     >
-                        Back to Dashboard
+                        Back to Home
                     </Button>
                 </div>
             </Card>

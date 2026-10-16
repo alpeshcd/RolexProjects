@@ -1,12 +1,25 @@
 import React from 'react'
 import classNames from 'classnames'
-import { Tag } from 'antd'
 
 interface RolexLogoProps {
     collapsed?: boolean
     className?: string
     showSubtitle?: boolean
 }
+
+const LogoMark = ({ size = 32 }: { size?: number }) => (
+    <div
+        className="rounded-[10px] bg-primary flex items-center justify-center shrink-0 ring-1 ring-inset ring-white/10"
+        style={{ width: size, height: size }}
+    >
+        <span
+            className="font-serif font-bold text-[#e8cf94] leading-none"
+            style={{ fontSize: size * 0.56 }}
+        >
+            R
+        </span>
+    </div>
+)
 
 const RolexLogo: React.FC<RolexLogoProps> = ({
     collapsed = false,
@@ -15,32 +28,28 @@ const RolexLogo: React.FC<RolexLogoProps> = ({
 }) => {
     if (collapsed) {
         return (
-            <div className={classNames('flex items-center justify-center py-2 select-none', className)}>
-                <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-sm">
-                    R
-                </div>
+            <div className={classNames('flex items-center justify-center select-none', className)}>
+                <LogoMark size={34} />
             </div>
         )
     }
 
     return (
-        <div className={classNames('flex flex-col items-center justify-center select-none py-1', className)}>
-            <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center font-extrabold text-sm shadow-sm">
-                    R
-                </div>
-                <div className="flex items-center gap-1.5">
-                    <span className="text-xl font-bold tracking-tight text-gray-900 dark:text-gray-100 font-sans">
+        <div className={classNames('flex flex-col select-none', className)}>
+            <div className="flex items-center gap-2.5">
+                <LogoMark size={34} />
+                <div className="flex flex-col leading-none">
+                    <span className="text-[17px] font-bold tracking-tight text-ink">
                         Rolex
                     </span>
-                    <Tag color="blue" className="text-[10px] font-semibold m-0 leading-none py-0.5 px-1.5 rounded">
-                        Exchange
-                    </Tag>
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-accent mt-1">
+                        Admin
+                    </span>
                 </div>
             </div>
             {showSubtitle && (
-                <span className="text-[11px] text-gray-400 dark:text-gray-500 font-medium mt-1">
-                    Sports & Gaming Portal
+                <span className="text-[11px] text-ink-3 font-medium mt-2">
+                    Central Management System
                 </span>
             )}
         </div>

@@ -1,10 +1,9 @@
+import { Card, Alert, Typography } from 'antd'
 import RolexLogo from '@/components/template/RolexLogo'
-import Alert from '@/components/ui/Alert'
-import Card from '@/components/ui/Card'
-import Tag from '@/components/ui/Tag'
 import SignInForm from './components/SignInForm'
 import useTimeOutMessage from '@/utils/hooks/useTimeOutMessage'
-import { MdSecurity } from 'react-icons/md'
+
+const { Title, Text } = Typography
 
 type SignInProps = {
     disableSubmit?: boolean
@@ -15,29 +14,33 @@ export const SignInBase = ({ disableSubmit }: SignInProps) => {
 
     return (
         <div className="w-full flex flex-col items-center">
-            {/* Top Logo Branding Matching Screenshot with Modern Elegance */}
-            <div className="mb-6 text-center">
-                <RolexLogo className="mx-auto" showSubtitle />
+            {/* Top Logo */}
+            <div className="mb-6 flex justify-center">
+                <RolexLogo />
             </div>
 
-            {/* Centered Luxury Glassmorphic Login Card */}
+            {/* Sober Ant Design Login Card */}
             <Card
-                className="w-full max-w-[440px] bg-white/95 dark:bg-slate-900/90 backdrop-blur-2xl shadow-2xl shadow-slate-950/40 border border-slate-200/80 dark:border-slate-800 rounded-3xl overflow-hidden transition-all duration-300"
-                bodyClass="p-7 sm:p-8"
+                className="w-full max-w-[400px] !rounded-2xl border border-line"
+                style={{ boxShadow: '0 1px 2px rgba(22, 32, 27, 0.04), 0 12px 32px -12px rgba(22, 32, 27, 0.12)' }}
+                styles={{ body: { padding: '28px 32px' } }}
             >
-                <div className="mb-6 text-center">
-                    <h2 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">
-                        Sign In To Exchange
-                    </h2>
-                    <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1">
-                        Enter your credentials to access operations & ledger
-                    </p>
+                <div className="mb-6">
+                    <Title level={4} style={{ margin: 0, fontWeight: 600, fontSize: 20 }}>
+                        Welcome back
+                    </Title>
+                    <Text type="secondary" style={{ fontSize: '13px' }}>
+                        Sign in to continue to Rolex Admin
+                    </Text>
                 </div>
 
                 {message && (
-                    <Alert showIcon className="mb-5 text-xs rounded-xl" type="danger">
-                        <span className="break-all font-medium">{message}</span>
-                    </Alert>
+                    <Alert
+                        message={message}
+                        type="error"
+                        showIcon
+                        className="mb-4 text-xs"
+                    />
                 )}
 
                 <SignInForm
@@ -45,12 +48,12 @@ export const SignInBase = ({ disableSubmit }: SignInProps) => {
                     setMessage={setMessage}
                 />
 
-                <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400 dark:text-slate-500 font-medium">
+                <div className="mt-6 pt-4 border-t border-line flex items-center justify-between text-[11px] text-ink-3">
                     <span className="flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                        <MdSecurity className="text-emerald-600 dark:text-emerald-400 text-sm" /> 256-Bit SSL Enforced
+                        <span className="w-1.5 h-1.5 rounded-full bg-success"></span>
+                        Secure SSL 256-Bit
                     </span>
-                    <span>Rolex Exchange System</span>
+                    <span>Rolex Panel v1.0.7</span>
                 </div>
             </Card>
         </div>
@@ -62,3 +65,4 @@ const SignIn = () => {
 }
 
 export default SignIn
+

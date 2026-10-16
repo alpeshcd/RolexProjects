@@ -16,17 +16,17 @@ import {
 export type NavigationIcons = Record<string, JSX.Element>
 
 const navigationIcon: NavigationIcons = {
-    home: <AppstoreOutlined className="text-base text-gray-500" />,
-    dashboard: <DashboardOutlined className="text-base text-blue-500" />,
-    globalSearch: <SearchOutlined className="text-base text-gray-500" />,
-    clients: <TeamOutlined className="text-base text-gray-500" />,
-    accounts: <BankOutlined className="text-base text-gray-500" />,
-    deposit: <DollarCircleOutlined className="text-base text-green-600" />,
-    withdraw: <ArrowUpOutlined className="text-base text-rose-500" />,
-    extraUsers: <UsergroupAddOutlined className="text-base text-gray-500" />,
-    statement: <FileTextOutlined className="text-base text-gray-500" />,
-    siteStats: <BarChartOutlined className="text-base text-gray-500" />,
-    changePassword: <KeyOutlined className="text-base text-gray-500" />,
+    home: <AppstoreOutlined className="text-[17px]" />,
+    dashboard: <DashboardOutlined className="text-[17px]" />,
+    globalSearch: <SearchOutlined className="text-[17px]" />,
+    clients: <TeamOutlined className="text-[17px]" />,
+    accounts: <BankOutlined className="text-[17px]" />,
+    deposit: <DollarCircleOutlined className="text-[17px]" />,
+    withdraw: <ArrowUpOutlined className="text-[17px]" />,
+    extraUsers: <UsergroupAddOutlined className="text-[17px]" />,
+    statement: <FileTextOutlined className="text-[17px]" />,
+    siteStats: <BarChartOutlined className="text-[17px]" />,
+    changePassword: <KeyOutlined className="text-[17px]" />,
     collapseMenu: <MenuFoldOutlined />,
 }
 

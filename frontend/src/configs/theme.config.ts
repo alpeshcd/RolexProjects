@@ -13,6 +13,11 @@ export type ThemeConfig = {
     }
 }
 
+// First visit follows the OS setting; afterwards the persisted choice wins.
+const prefersDark =
+    typeof window !== 'undefined' &&
+    window.matchMedia?.('(prefers-color-scheme: dark)').matches
+
 /**
  * Since some configurations need to be match with specific themes,
  * we recommend to use the configuration that generated from demo.
@@ -20,7 +25,7 @@ export type ThemeConfig = {
 export const themeConfig: ThemeConfig = {
     themeSchema: '',
     direction: THEME_ENUM.DIR_LTR,
-    mode: THEME_ENUM.MODE_LIGHT,
+    mode: prefersDark ? THEME_ENUM.MODE_DARK : THEME_ENUM.MODE_LIGHT,
     panelExpand: false,
     controlSize: 'md',
     layout: {

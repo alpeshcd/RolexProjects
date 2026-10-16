@@ -2,102 +2,188 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Rolex design tokens — "Emerald & Gold".
+ * Keep in sync with src/configs/palette.config.ts (used for Ant Design).
+ */
 @layer base {
 	:root {
+		color-scheme: light;
+
+		/* Brand */
+		--primary: #0b6b4d;
+		--primary-deep: #075239;
+		--primary-mild: #138060;
+		--primary-subtle: #0b6b4d14;
+		--accent: #a8823a;
+		--accent-subtle: #a8823a1a;
 		--neutral: #ffffff;
-		--primary: #2a85ff;
-		--primary-deep: #0069f6;
-		--primary-mild: #4996ff;
-		--primary-subtle: #2a85ff1a;
-		--error: #ff6a55;
-		--error-subtle: #ff6a551a;
-		--success: #10b981;
-		--success-subtle: #05eb7624;
-		--info: #2a85ff;
-		--info-subtle: #2a85ff1a;
-		--warning: #f59e0b;
-		--warning-subtle: #ffd40045;
-		--gray-50: #fafafa;
-		--gray-100: #f5f5f5;
-		--gray-200: #e5e5e5;
-		--gray-300: #d4d4d4;
-		--gray-400: #a3a3a3;
-		--gray-500: #737373;
-		--gray-600: #525252;
-		--gray-700: #404040;
-		--gray-800: #262626;
-		--gray-900: #171717;
-		--gray-950: #0a0a0a;
+
+		/* Surfaces & lines */
+		--canvas: #f5f6f3;
+		--surface: #ffffff;
+		--surface-2: #f8f9f6;
+		--surface-hover: #f2f5f1;
+		--line: #e6e9e4;
+		--line-strong: #d5dad3;
+
+		/* Text */
+		--ink: #16201b;
+		--ink-2: #46524c;
+		--ink-3: #6e7973;
+
+		/* Status */
+		--error: #c23b32;
+		--error-subtle: #c23b3214;
+		--success: #2e8b57;
+		--success-subtle: #2e8b5714;
+		--info: #2c6cb0;
+		--info-subtle: #2c6cb014;
+		--warning: #b7791f;
+		--warning-subtle: #b7791f1a;
+
+		/* Tag tones (soft tinted tags) */
+		--tag-blue: #2c6cb0;
+		--tag-geekblue: #4a5fa8;
+		--tag-cyan: #0b6b4d;
+		--tag-green: #2e8b57;
+		--tag-lime: #5f7d1f;
+		--tag-gold: #94712c;
+		--tag-yellow: #8f7a14;
+		--tag-orange: #a86a12;
+		--tag-volcano: #b4553a;
+		--tag-red: #c23b32;
+		--tag-magenta: #9b4a78;
+		--tag-pink: #a85278;
+		--tag-purple: #6b5b95;
+
+		/* Sage-tinted neutral scale (used by template components) */
+		--gray-50: #f8f9f7;
+		--gray-100: #f1f3f0;
+		--gray-200: #e6e9e4;
+		--gray-300: #d5dad3;
+		--gray-400: #a3aca6;
+		--gray-500: #737e78;
+		--gray-600: #535d58;
+		--gray-700: #2a3430;
+		--gray-800: #141a17;
+		--gray-900: #101512;
+		--gray-950: #0c100e;
 	}
 
 	.dark {
+		color-scheme: dark;
+
+		--primary: #24996f;
+		--primary-deep: #1b7d5a;
+		--primary-mild: #3ab088;
+		--primary-subtle: #24996f26;
+		--accent: #cfaa5e;
+		--accent-subtle: #cfaa5e1f;
 		--neutral: #ffffff;
-		--primary: #2a85ff;
-		--primary-deep: #0069f6;
-		--primary-mild: #4996ff;
-		--primary-subtle: #2a85ff1a;
-		--error: #ff6a55;
-		--error-subtle: #ff6a551a; 
-		--success: #10b981;
-		--success-subtle: #05eb7624;
-		--info: #2a85ff;
-		--info-subtle: #2a85ff1a;
-		--warning: #f59e0b;
-		--warning-subtle: #ffd40045;
-		--gray-50: #fafafa;
-		--gray-100: #f5f5f5;
-		--gray-200: #e5e5e5;
-		--gray-300: #d4d4d4;
-		--gray-400: #a3a3a3;
-		--gray-500: #737373;
-		--gray-600: #525252;
-		--gray-700: #404040;
-		--gray-800: #262626;
-		--gray-900: #171717;
-		--gray-950: #0a0a0a;
+
+		--canvas: #0c100e;
+		--surface: #141a17;
+		--surface-2: #19201c;
+		--surface-hover: #1f2823;
+		--line: #262f2b;
+		--line-strong: #323d37;
+
+		--ink: #e8ede9;
+		--ink-2: #aeb9b3;
+		--ink-3: #7f8b85;
+
+		--error: #eb6b62;
+		--error-subtle: #eb6b621f;
+		--success: #46b37a;
+		--success-subtle: #46b37a1f;
+		--info: #5f9fe3;
+		--info-subtle: #5f9fe31f;
+		--warning: #dda143;
+		--warning-subtle: #dda1431f;
+
+		--tag-blue: #6aa6e8;
+		--tag-geekblue: #8d9de3;
+		--tag-cyan: #3ab088;
+		--tag-green: #46b37a;
+		--tag-lime: #9cc25a;
+		--tag-gold: #cfaa5e;
+		--tag-yellow: #d6c25a;
+		--tag-orange: #dda143;
+		--tag-volcano: #e58a6c;
+		--tag-red: #eb6b62;
+		--tag-magenta: #d98ab5;
+		--tag-pink: #e08fb1;
+		--tag-purple: #a897db;
 	}
 
+	html {
+		@apply bg-canvas;
+	}
 
 	body {
-		@apply text-gray-500 dark:text-gray-400 text-sm bg-gray-100 dark:bg-gray-950 leading-normal font-medium;
+		@apply text-ink-2 text-sm bg-canvas leading-normal font-medium;
 		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
 	}
 
 	h1,
 	.h1 {
-		@apply text-4xl font-bold text-gray-900 dark:text-gray-100;
+		@apply text-4xl font-bold text-ink tracking-tight;
 	}
 
 	h2,
 	.h2 {
-		@apply text-3xl font-bold text-gray-900 dark:text-gray-100;
+		@apply text-3xl font-bold text-ink tracking-tight;
 	}
 
 	h3,
 	.h3 {
-		@apply text-2xl font-bold text-gray-900 dark:text-gray-100;
+		@apply text-2xl font-bold text-ink tracking-tight;
 	}
 
 	h4,
 	.h4 {
-		@apply text-xl font-bold text-gray-900 dark:text-gray-100;
+		@apply text-xl font-bold text-ink;
 	}
 
 	h5,
 	.h5 {
-		@apply text-lg font-bold text-gray-900 dark:text-gray-100;
+		@apply text-lg font-bold text-ink;
 	}
 
 	h6,
 	.h6 {
-		@apply text-base font-semibold text-gray-900 dark:text-gray-100;
+		@apply text-base font-semibold text-ink;
 	}
 
 	hr {
-		@apply border-gray-200 dark:border-gray-600;
+		@apply border-line;
 	}
 
 	.heading-text {
-		@apply text-gray-900 dark:text-gray-100;
+		@apply text-ink;
+	}
+
+	::selection {
+		background: var(--primary-subtle);
+		color: var(--ink);
+	}
+}
+
+@layer components {
+	/* Standard panel: page headers, cards, filter bars */
+	.panel {
+		@apply bg-surface border border-line rounded-xl;
+	}
+
+	/* Small uppercase section label */
+	.section-label {
+		@apply text-[11px] uppercase tracking-[0.08em] font-semibold text-ink-3;
+	}
+
+	/* Icon chip used for nav tiles and card titles */
+	.icon-chip {
+		@apply inline-flex items-center justify-center rounded-lg bg-primary-subtle text-primary;
 	}
 }
