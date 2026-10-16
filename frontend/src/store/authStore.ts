@@ -20,7 +20,10 @@ type AuthState = {
 
 type AuthAction = {
     setSessionSignedIn: (payload: boolean) => void
+    /** Merge fields into the current user (e.g. refreshed balance) */
     setUser: (payload: User) => void
+    /** Replace the whole user, dropping fields from any previous session */
+    replaceUser: (payload?: User) => void
 }
 
 const getPersistStorage = () => {
@@ -64,6 +67,10 @@ export const useSessionUser = create<AuthState & AuthAction>()(
                         ...state.user,
                         ...payload,
                     },
+                })),
+            replaceUser: (payload) =>
+                set(() => ({
+                    user: { ...initialState.user, ...payload },
                 })),
         }),
         { name: 'sessionUser', storage: createJSONStorage(() => localStorage) },
@@ -112,6 +119,7 @@ export const useToken = () => {
         storage.removeItem(REFRESH_TOKEN_NAME_IN_STORAGE)
         storage.removeItem(USER_NAME_IN_STORAGE)
         storage.removeItem('temp_2fa_token')
+        storage.removeItem('temp_2fa_user')
     }
 
     return {

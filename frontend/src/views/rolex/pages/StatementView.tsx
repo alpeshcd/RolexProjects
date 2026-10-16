@@ -80,10 +80,18 @@ const StatementView = () => {
         .reduce((acc, curr) => acc + Math.abs(curr.amount), 0)
 
     const netDifference = totalCredit - totalDebit
-    const currentBalance = filteredStatements.length > 0 ? filteredStatements[0].balance : 762427.20
+    // Closing balance comes from the most recent entry, whatever order the rows are in
+    const latestEntry = filteredStatements.reduce<(typeof filteredStatements)[number] | null>(
+        (latest, s) =>
+            !latest || new Date(s.date || 0).getTime() >= new Date(latest.date || 0).getTime()
+                ? s
+                : latest,
+        null,
+    )
+    const currentBalance = latestEntry ? latestEntry.balance : 762427.20
 
     const exportToCSV = () => {
-        const headers = ['NO,DATE,EVENT TYPE,AMOUNT,TOTAL,BALANCE,TYPE,D/C,DESCRIPTION\n']
+        const header = 'NO,DATE,EVENT TYPE,AMOUNT,TOTAL,BALANCE,TYPE,D/C,DESCRIPTION'
         const rows = filteredStatements.map((s, idx) =>
             [
                 idx + 1,
@@ -97,7 +105,7 @@ const StatementView = () => {
                 `"${(s.description || '').replace(/"/g, '""')}"`,
             ].join(',')
         )
-        const blob = new Blob([headers.concat(rows.join('\n'))], { type: 'text/csv' })
+        const blob = new Blob([[header, ...rows].join('\n')], { type: 'text/csv' })
         const url = URL.createObjectURL(blob)
         const a = document.createElement('a')
         a.href = url

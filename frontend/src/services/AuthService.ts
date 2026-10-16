@@ -150,9 +150,36 @@ export async function apiCreateUser(data: {
     balance?: number
     upline_share?: number
     upline?: string
+    site?: string
     is_2fa_enabled?: boolean
 }): Promise<User> {
     const response = await AxiosBase.post<User>('/api/v1/users', data)
+    return response.data
+}
+
+/** Admin-panel staff accounts (Extra Users page) */
+export interface StaffUser {
+    id: number
+    username: string
+    full_name?: string | null
+    role: string
+    site?: string | null
+    is_active: boolean
+    created_at?: string | null
+}
+
+export async function apiGetStaff(): Promise<StaffUser[]> {
+    const response = await AxiosBase.get<StaffUser[]>('/api/v1/users/staff')
+    return response.data
+}
+
+export async function apiUpdateStaffStatus(
+    userId: number,
+    isActive: boolean,
+): Promise<StaffUser> {
+    const response = await AxiosBase.put<StaffUser>(`/api/v1/users/${userId}/status`, {
+        is_active: isActive,
+    })
     return response.data
 }
 

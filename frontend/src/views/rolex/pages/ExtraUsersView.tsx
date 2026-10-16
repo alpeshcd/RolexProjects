@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
     Card,
@@ -11,75 +11,80 @@ import {
     Breadcrumb,
     Typography,
 } from 'antd'
-import {
-    PlusOutlined,
-    SearchOutlined,
-    UserOutlined,
-    CheckOutlined,
-} from '@ant-design/icons'
+import { PlusOutlined, SearchOutlined } from '@ant-design/icons'
 import toast from '@/components/ui/toast'
 import Notification from '@/components/ui/Notification'
+import { apiCreateUser, apiGetStaff, apiUpdateStaffStatus } from '@/services/AuthService'
+import type { StaffUser } from '@/services/AuthService'
 
 const { Title, Text } = Typography
+
+type OperatorRole = 'Sub-Admin' | 'Settlement Manager' | 'Customer Support' | 'Audit Operator'
 
 interface ExtraUser {
     id: number
     username: string
     name: string
-    role: 'Sub-Admin' | 'Settlement Manager' | 'Customer Support' | 'Audit Operator'
+    role: string
     assigned_portals: string[]
     status: 'Active' | 'Suspended'
     created_at: string
 }
 
-const INITIAL_EXTRA_USERS: ExtraUser[] = [
-    {
-        id: 701,
-        username: 'OP_DEPOSIT_01',
-        name: 'Vikas Sharma',
-        role: 'Settlement Manager',
-        assigned_portals: ['Mastan 247', 'Mastan365', 'Mastan99'],
-        status: 'Active',
-        created_at: '12/10/2026 10:24 AM',
-    },
-    {
-        id: 702,
-        username: 'OP_WITHDRAW_02',
-        name: 'Rahul Varma',
-        role: 'Settlement Manager',
-        assigned_portals: ['Mastan99', 'Mastanreddy'],
-        status: 'Active',
-        created_at: '10/10/2026 03:15 PM',
-    },
-    {
-        id: 703,
-        username: 'SUPPORT_CHAUDHARY',
-        name: 'Alpesh Chaudhary',
-        role: 'Sub-Admin',
-        assigned_portals: ['All Portals'],
-        status: 'Active',
-        created_at: '01/10/2026 09:00 AM',
-    },
-    {
-        id: 704,
-        username: 'AUDIT_OFFICER_99',
-        name: 'Pooja Patel',
-        role: 'Audit Operator',
-        assigned_portals: ['Mastan365', 'Mastan99'],
-        status: 'Active',
-        created_at: '05/10/2026 11:40 AM',
-    },
-]
+const ROLE_LABELS: Record<string, string> = {
+    admin: 'Admin',
+    supermaster: 'Super Master',
+    operator: 'Operator',
+}
+
+const toExtraUser = (u: StaffUser): ExtraUser => ({
+    id: u.id,
+    username: u.username,
+    name: u.full_name || u.username,
+    role: ROLE_LABELS[u.role] || u.role,
+    assigned_portals: [u.site || 'All Portals'],
+    status: u.is_active ? 'Active' : 'Suspended',
+    created_at: u.created_at ? new Date(u.created_at + 'Z').toLocaleString() : '-',
+})
+
+const errorText = (err: unknown, fallback: string): string => {
+    const e = err as { response?: { data?: { detail?: string } }; message?: string }
+    return e?.response?.data?.detail || e?.message || fallback
+}
 
 const ExtraUsersView = () => {
-    const [users, setUsers] = useState<ExtraUser[]>(INITIAL_EXTRA_USERS)
+    const [users, setUsers] = useState<ExtraUser[]>([])
+    const [loading, setLoading] = useState(true)
+    const [isCreating, setIsCreating] = useState(false)
+    const [togglingId, setTogglingId] = useState<number | null>(null)
     const [searchTerm, setSearchTerm] = useState('')
     const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+
+    const loadUsers = async () => {
+        setLoading(true)
+        try {
+            const staff = await apiGetStaff()
+            setUsers(staff.map(toExtraUser))
+        } catch (err) {
+            toast.push(
+                <Notification title="Could not load operators" type="danger">
+                    {errorText(err, 'Please try again.')}
+                </Notification>
+            )
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    useEffect(() => {
+        loadUsers()
+    }, [])
 
     // Form fields
     const [newUsername, setNewUsername] = useState('')
     const [newName, setNewName] = useState('')
-    const [newRole, setNewRole] = useState<ExtraUser['role']>('Settlement Manager')
+    const [newPassword, setNewPassword] = useState('')
+    const [newRole, setNewRole] = useState<OperatorRole>('Settlement Manager')
     const [newPortals, setNewPortals] = useState('All Portals')
 
     const filteredUsers = users.filter(
@@ -89,53 +94,75 @@ const ExtraUsersView = () => {
             u.role.toLowerCase().includes(searchTerm.toLowerCase())
     )
 
-    const handleToggleStatus = (id: number) => {
-        setUsers((prev) =>
-            prev.map((u) => {
-                if (u.id === id) {
-                    const newStatus = u.status === 'Active' ? 'Suspended' : 'Active'
-                    toast.push(
-                        <Notification title="Status Changed" type="info">
-                            User {u.username} marked as {newStatus}.
-                        </Notification>
-                    )
-                    return { ...u, status: newStatus }
-                }
-                return u
-            })
-        )
+    const handleToggleStatus = async (user: ExtraUser) => {
+        const activate = user.status !== 'Active'
+        setTogglingId(user.id)
+        try {
+            const updated = await apiUpdateStaffStatus(user.id, activate)
+            setUsers((prev) => prev.map((u) => (u.id === user.id ? toExtraUser(updated) : u)))
+            toast.push(
+                <Notification title="Status Changed" type="info">
+                    User {user.username} marked as {activate ? 'Active' : 'Suspended'}.
+                </Notification>
+            )
+        } catch (err) {
+            toast.push(
+                <Notification title="Status Change Failed" type="danger">
+                    {errorText(err, 'Could not update status.')}
+                </Notification>
+            )
+        } finally {
+            setTogglingId(null)
+        }
     }
 
-    const handleCreateUser = (e?: React.FormEvent) => {
+    const handleCreateUser = async (e?: React.FormEvent) => {
         if (e) e.preventDefault()
-        if (!newUsername.trim() || !newName.trim()) {
+        if (!newUsername.trim() || !newName.trim() || !newPassword) {
             toast.push(
                 <Notification title="Missing Fields" type="warning">
-                    Please provide username and full name.
+                    Please provide username, full name and password.
+                </Notification>
+            )
+            return
+        }
+        if (newPassword.length < 6) {
+            toast.push(
+                <Notification title="Weak Password" type="warning">
+                    Password must be at least 6 characters.
                 </Notification>
             )
             return
         }
 
-        const newUser: ExtraUser = {
-            id: Date.now() % 10000,
-            username: newUsername.trim().toUpperCase(),
-            name: newName.trim(),
-            role: newRole,
-            assigned_portals: [newPortals],
-            status: 'Active',
-            created_at: new Date().toLocaleString(),
+        setIsCreating(true)
+        try {
+            const created = await apiCreateUser({
+                username: newUsername.trim(),
+                password: newPassword,
+                full_name: newName.trim(),
+                role: newRole,
+                site: newPortals,
+            })
+            setUsers((prev) => [toExtraUser(created as unknown as StaffUser), ...prev])
+            toast.push(
+                <Notification title="User Created" type="success">
+                    Extra administrative user {created.username} added. They can now sign in.
+                </Notification>
+            )
+            setIsAddModalOpen(false)
+            setNewUsername('')
+            setNewName('')
+            setNewPassword('')
+        } catch (err) {
+            toast.push(
+                <Notification title="Create Failed" type="danger">
+                    {errorText(err, 'Could not create user.')}
+                </Notification>
+            )
+        } finally {
+            setIsCreating(false)
         }
-
-        setUsers((prev) => [newUser, ...prev])
-        toast.push(
-            <Notification title="User Created" type="success">
-                Extra administrative user {newUser.username} added successfully!
-            </Notification>
-        )
-        setIsAddModalOpen(false)
-        setNewUsername('')
-        setNewName('')
     }
 
     return (
@@ -209,7 +236,7 @@ const ExtraUsersView = () => {
                             {filteredUsers.length === 0 ? (
                                 <tr>
                                     <td colSpan={8} className="py-10 text-center text-ink-3 font-medium">
-                                        No Operators Found
+                                        {loading ? 'Loading operators…' : 'No Operators Found'}
                                     </td>
                                 </tr>
                             ) : (
@@ -246,7 +273,8 @@ const ExtraUsersView = () => {
                                             <Button
                                                 size="small"
                                                 danger={u.status === 'Active'}
-                                                onClick={() => handleToggleStatus(u.id)}
+                                                loading={togglingId === u.id}
+                                                onClick={() => handleToggleStatus(u)}
                                             >
                                                 {u.status === 'Active' ? 'Suspend' : 'Activate'}
                                             </Button>
@@ -271,6 +299,7 @@ const ExtraUsersView = () => {
                 onCancel={() => setIsAddModalOpen(false)}
                 onOk={() => handleCreateUser()}
                 okText="Create User"
+                confirmLoading={isCreating}
             >
                 <div className="space-y-3 pt-2 text-xs">
                     <div>
@@ -297,11 +326,23 @@ const ExtraUsersView = () => {
 
                     <div>
                         <label className="block text-xs font-semibold text-ink-2 uppercase tracking-wider mb-1">
+                            Password <span className="text-error">*</span>
+                        </label>
+                        <Input.Password
+                            placeholder="Minimum 6 characters"
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            autoComplete="new-password"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-semibold text-ink-2 uppercase tracking-wider mb-1">
                             Operator Role
                         </label>
                         <Select
                             value={newRole}
-                            onChange={(val) => setNewRole(val as ExtraUser['role'])}
+                            onChange={(val) => setNewRole(val as OperatorRole)}
                             className="w-full"
                             options={[
                                 { label: 'Settlement Manager', value: 'Settlement Manager' },

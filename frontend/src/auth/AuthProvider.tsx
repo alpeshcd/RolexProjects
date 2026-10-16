@@ -45,6 +45,7 @@ function AuthProvider({ children }: AuthProviderProps) {
     const signedIn = useSessionUser((state) => state.session.signedIn)
     const user = useSessionUser((state) => state.user)
     const setUser = useSessionUser((state) => state.setUser)
+    const replaceUser = useSessionUser((state) => state.replaceUser)
     const setSessionSignedIn = useSessionUser(
         (state) => state.setSessionSignedIn,
     )
@@ -75,9 +76,12 @@ function AuthProvider({ children }: AuthProviderProps) {
         const search = window.location.search
         const params = new URLSearchParams(search)
         const redirectUrl = params.get(REDIRECT_URL_KEY)
+        // Only follow in-app paths (blocks //evil.com style redirects)
+        const isInternal =
+            !!redirectUrl && redirectUrl.startsWith('/') && !redirectUrl.startsWith('//')
 
         navigatorRef.current?.navigate(
-            redirectUrl ? redirectUrl : appConfig.authenticatedEntryPath,
+            isInternal ? redirectUrl : appConfig.authenticatedEntryPath,
         )
     }
 
@@ -92,18 +96,13 @@ function AuthProvider({ children }: AuthProviderProps) {
         localStorage.setItem(USER_NAME_IN_STORAGE, JSON.stringify(profile))
 
         setTokens({ accessToken, refreshToken })
-        setUser(profile)
+        replaceUser(profile)
         setSessionSignedIn(true)
     }
 
     const handleSignOut = () => {
         clearTokens()
-        setUser({
-            avatar: '',
-            userName: '',
-            email: '',
-            authority: [],
-        })
+        replaceUser()
         setSessionSignedIn(false)
     }
 
@@ -123,11 +122,15 @@ function AuthProvider({ children }: AuthProviderProps) {
 
             // If user requires 2FA authentication step
             if (resp && resp.requires_2fa) {
+                // Drop any previous session so the 2FA screen shows only this user
+                handleSignOut()
                 if (resp.temp_token) {
                     localStorage.setItem('temp_2fa_token', resp.temp_token)
                 }
                 localStorage.setItem('temp_2fa_user', username)
-                navigatorRef.current?.navigate('/verify')
+                replaceUser({ username, userName: username, full_name: username })
+                // Keep ?redirectUrl=... so the user lands where they were headed
+                navigatorRef.current?.navigate(`/verify${window.location.search}`)
                 return {
                     status: 'success',
                     message: resp.message || '2FA verification required',

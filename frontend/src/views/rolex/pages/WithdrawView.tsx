@@ -177,13 +177,15 @@ const WithdrawView = () => {
         if (!rejectModalItem) return
         setIsRejecting(true)
         try {
-            const updated = await apiRejectWithdrawal(rejectModalItem.id)
+            const updated = await apiRejectWithdrawal(rejectModalItem.id, {
+                reason: rejectReason,
+            })
             setWithdrawals((prev) =>
                 prev.map((w) => (w.id === updated.id ? updated : w))
             )
             toast.push(
                 <Notification title="Withdrawal Rejected" type="warning">
-                    Withdrawal #{updated.withdrawal_id} rejected. Balance refunded to client.
+                    Withdrawal #{updated.withdrawal_id} rejected. Client balance is unchanged.
                 </Notification>
             )
             setRejectModalItem(null)

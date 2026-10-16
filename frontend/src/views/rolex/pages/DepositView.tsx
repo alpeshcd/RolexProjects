@@ -67,10 +67,11 @@ const DepositView = () => {
     // Determine initial active tab based on route pathname
     const getInitialTab = (): TabType => {
         const path = location.pathname.toLowerCase()
+        // Most specific first: /deposits/utr-entry/removed-list also contains "utr-entry"
+        if (path.includes('removed')) return 'utr-removed'
         if (path.includes('history')) return 'history'
-        if (path.includes('utr-entry') || path.includes('entry')) return 'utr-entry'
-        if (path.includes('utr-pending') || path.includes('pending')) return 'utr-pending'
-        if (path.includes('utr-removed') || path.includes('removed')) return 'utr-removed'
+        if (path.includes('utr-pending')) return 'utr-pending'
+        if (path.includes('utr-entry')) return 'utr-entry'
         return 'pending'
     }
 

@@ -29,10 +29,25 @@ const processQueue = (error: any, token: string | null = null) => {
     failedQueue = []
 }
 
+// FastAPI validation errors (422) return `detail` as a list of objects;
+// flatten it so UI code can render `err.response.data.detail` as text.
+const normalizeErrorDetail = (error: AxiosError) => {
+    const data = error.response?.data as { detail?: unknown } | undefined
+    if (data && Array.isArray(data.detail)) {
+        data.detail = data.detail
+            .map((d: { loc?: (string | number)[]; msg?: string }) => {
+                const field = d.loc?.filter((p) => p !== 'body').join('.')
+                return field ? `${field}: ${d.msg}` : d.msg
+            })
+            .join('; ')
+    }
+}
+
 export const handleAxiosResponseError = async (
     error: AxiosError,
     axiosInstance: AxiosInstance,
 ) => {
+    normalizeErrorDetail(error)
     const { response, config } = error
     const originalRequest = config as InternalAxiosRequestConfig & { _retry?: boolean }
 
@@ -50,12 +65,7 @@ export const handleAxiosResponseError = async (
     if (isAuthUrl || originalRequest._retry) {
         const { clearTokens } = useToken()
         clearTokens()
-        useSessionUser.getState().setUser({
-            avatar: '',
-            userName: '',
-            email: '',
-            authority: [],
-        })
+        useSessionUser.getState().replaceUser()
         useSessionUser.getState().setSessionSignedIn(false)
         return Promise.reject(error)
     }
@@ -65,12 +75,7 @@ export const handleAxiosResponseError = async (
     if (!refreshToken) {
         const { clearTokens } = useToken()
         clearTokens()
-        useSessionUser.getState().setUser({
-            avatar: '',
-            userName: '',
-            email: '',
-            authority: [],
-        })
+        useSessionUser.getState().replaceUser()
         useSessionUser.getState().setSessionSignedIn(false)
         if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/sign-in')) {
             window.location.href = appConfig.unAuthenticatedEntryPath
@@ -135,12 +140,7 @@ export const handleAxiosResponseError = async (
         processQueue(refreshError, null)
         const { clearTokens } = useToken()
         clearTokens()
-        useSessionUser.getState().setUser({
-            avatar: '',
-            userName: '',
-            email: '',
-            authority: [],
-        })
+        useSessionUser.getState().replaceUser()
         useSessionUser.getState().setSessionSignedIn(false)
 
         if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/sign-in')) {

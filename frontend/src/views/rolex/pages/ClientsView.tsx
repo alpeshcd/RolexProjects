@@ -145,7 +145,7 @@ const ClientsView = () => {
                     <Button
                         type="primary"
                         icon={<PlusOutlined />}
-                        onClick={() => navigate('/clients/create')}
+                        onClick={() => navigate('/clients/add')}
                     >
                         Add Client
                     </Button>
@@ -229,6 +229,7 @@ const ClientsView = () => {
                             placeholder="Username"
                             value={usernameFilter}
                             onChange={(e) => setUsernameFilter(e.target.value)}
+                            onPressEnter={() => handleSearch()}
                             allowClear
                         />
                     </div>

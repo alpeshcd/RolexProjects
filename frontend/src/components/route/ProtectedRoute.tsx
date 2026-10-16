@@ -8,10 +8,13 @@ const { unAuthenticatedEntryPath } = appConfig
 const ProtectedRoute = () => {
     const { authenticated } = useAuth()
 
-    const { pathname } = useLocation()
+    const { pathname, search } = useLocation()
 
+    // Use the router's location; window.location may already point at /sign-in
     const getPathName =
-        pathname === '/' ? '' : `?${REDIRECT_URL_KEY}=${location.pathname}`
+        pathname === '/'
+            ? ''
+            : `?${REDIRECT_URL_KEY}=${encodeURIComponent(pathname + search)}`
 
     if (!authenticated) {
         return (
