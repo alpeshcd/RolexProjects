@@ -10,15 +10,20 @@
     <meta name="theme-color" content="#0c100e" media="(prefers-color-scheme: dark)" />
     <title>Rolex Admin Panel</title>
     <script>
-      // Apply the saved light/dark mode before first paint to avoid a flash.
+      // Apply the saved light/dark mode and color scheme before first paint to avoid a flash.
       (function () {
         try {
+          var root = document.documentElement
           var saved = JSON.parse(localStorage.getItem('theme') || 'null')
           var mode = saved && saved.state && saved.state.mode
           if (!mode) {
             mode = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
           }
-          document.documentElement.classList.add(mode)
+          root.classList.add(mode)
+          if (saved) {
+            var vars = JSON.parse(localStorage.getItem('theme-vars') || '{}')
+            for (var key in vars) root.style.setProperty(key, vars[key])
+          }
         } catch (e) {}
       })()
     </script>

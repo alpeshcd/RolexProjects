@@ -1,4 +1,5 @@
 import { THEME_ENUM } from '@/constants/theme.constant'
+import { DEFAULT_COLOR_SCHEME } from '@/configs/palette.config'
 import { Direction, Mode, ControlSize, LayoutType } from '@/@types/theme'
 
 export type ThemeConfig = {
@@ -23,7 +24,7 @@ const prefersDark =
  * we recommend to use the configuration that generated from demo.
  */
 export const themeConfig: ThemeConfig = {
-    themeSchema: '',
+    themeSchema: DEFAULT_COLOR_SCHEME,
     direction: THEME_ENUM.DIR_LTR,
     mode: prefersDark ? THEME_ENUM.MODE_DARK : THEME_ENUM.MODE_LIGHT,
     panelExpand: false,

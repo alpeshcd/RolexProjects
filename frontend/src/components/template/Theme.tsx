@@ -1,7 +1,8 @@
 import ConfigProvider from '@/components/ui/ConfigProvider'
 import { ConfigProvider as AntdConfigProvider, theme as antdTheme } from 'antd'
 import { themeConfig } from '@/configs/theme.config'
-import { palette } from '@/configs/palette.config'
+import { getPalette } from '@/configs/palette.config'
+import { useThemeStore } from '@/store/themeStore'
 import useDarkMode from '@/utils/hooks/useDarkMode'
 import useTheme from '@/utils/hooks/useTheme'
 import useLocale from '@/utils/hooks/useLocale'
@@ -15,7 +16,8 @@ const Theme = (props: CommonProps) => {
 
     const { locale } = useLocale()
 
-    const p = isDark ? palette.dark : palette.light
+    const themeSchema = useThemeStore((state) => state.themeSchema)
+    const p = getPalette(themeSchema, isDark ? 'dark' : 'light')
     const softShadow = isDark
         ? '0 8px 24px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.04)'
         : '0 8px 24px rgba(22, 32, 27, 0.08), 0 1px 2px rgba(22, 32, 27, 0.06)'
@@ -39,7 +41,7 @@ const Theme = (props: CommonProps) => {
                         colorWarning: p.warning,
                         colorBgLayout: p.canvas,
                         colorBgContainer: p.surface,
-                        colorBgElevated: isDark ? '#19201c' : '#ffffff',
+                        colorBgElevated: p.elevated,
                         colorFillAlter: p.surface2,
                         colorBorder: p.lineStrong,
                         colorBorderSecondary: p.line,
@@ -117,8 +119,8 @@ const Theme = (props: CommonProps) => {
                         },
                         Modal: {
                             borderRadiusLG: 14,
-                            contentBg: isDark ? '#19201c' : '#ffffff',
-                            headerBg: isDark ? '#19201c' : '#ffffff',
+                            contentBg: p.elevated,
+                            headerBg: p.elevated,
                             footerBg: 'transparent',
                         },
                         Drawer: {

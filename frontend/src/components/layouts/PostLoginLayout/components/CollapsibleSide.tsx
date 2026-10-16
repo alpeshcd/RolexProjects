@@ -7,6 +7,7 @@ import UserProfileDropdown from '@/components/template/UserProfileDropdown'
 import LayoutBase from '@/components/template/LayoutBase'
 import Notification from '@/components/template/Notification'
 import ThemeToggle from '@/components/template/ThemeToggle'
+import ThemeColorPicker from '@/components/template/ThemeColorPicker'
 import useResponsive from '@/utils/hooks/useResponsive'
 import { LAYOUT_COLLAPSIBLE_SIDE } from '@/constants/theme.constant'
 import type { CommonProps } from '@/@types/common'
@@ -53,6 +54,7 @@ const CollapsibleSide = ({ children }: CommonProps) => {
                                 >
                                     <PiMagnifyingGlassDuotone className="text-lg" />
                                 </button>
+                                <ThemeColorPicker />
                                 <ThemeToggle />
                                 <Notification />
                                 <div className="w-px h-6 bg-line mx-1 hidden sm:block" />

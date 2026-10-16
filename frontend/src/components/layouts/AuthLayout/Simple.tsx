@@ -1,6 +1,7 @@
 import { cloneElement } from 'react'
 import Container from '@/components/shared/Container'
 import ThemeToggle from '@/components/template/ThemeToggle'
+import ThemeColorPicker from '@/components/template/ThemeColorPicker'
 import type { ReactNode, ReactElement } from 'react'
 import type { CommonProps } from '@/@types/common'
 
@@ -20,7 +21,8 @@ const Simple = ({ children, content, ...rest }: SimpleProps) => {
                         'radial-gradient(60% 60% at 50% 0%, var(--primary-subtle) 0%, transparent 70%)',
                 }}
             />
-            <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20">
+            <div className="absolute top-4 right-4 sm:top-6 sm:right-6 z-20 flex items-center gap-2">
+                <ThemeColorPicker />
                 <ThemeToggle />
             </div>
             <Container className="relative z-10 flex flex-col flex-auto items-center justify-center min-w-0 w-full max-w-[420px]">

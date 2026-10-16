@@ -1,52 +1,28 @@
 import { useEffect } from 'react'
 import { useThemeStore } from '@/store/themeStore'
-import presetThemeSchemaConfig from '@/configs/preset-theme-schema.config'
+import { getPalette, paletteToCssVars } from '@/configs/palette.config'
 
-export type ThemeVariables = Record<
-    'primary' | 'primaryDeep' | 'primaryMild' | 'primarySubtle' | 'neutral',
-    string
->
+/** localStorage key read by the inline script in index.html before first paint */
+export const THEME_VARS_CACHE_KEY = 'theme-vars'
 
-export interface MappedTheme {
-    [key: string]: string
-}
-
-export const mapTheme = (variables: ThemeVariables): MappedTheme => {
-    return {
-        '--primary': variables.primary || '',
-        '--primary-deep': variables.primaryDeep || '',
-        '--primary-mild': variables.primaryMild || '',
-        '--primary-subtle': variables.primarySubtle || '',
-        '--neutral': variables.neutral || '',
-    }
-}
-
+/** Applies the selected color scheme (for the current mode) as CSS variables. */
 function useThemeSchema() {
     const themeSchema = useThemeStore((state) => state.themeSchema)
     const mode = useThemeStore((state) => state.mode)
 
-    const applyTheme = (theme: string): void => {
-        if (presetThemeSchemaConfig[theme][mode]) {
-            const themeObject = mapTheme(presetThemeSchemaConfig[theme][mode])
-            if (!themeObject) return
-
-            const root = document.documentElement
-
-            Object.keys(themeObject).forEach((property) => {
-                if (property === 'name') {
-                    return
-                }
-
-                root.style.setProperty(property, themeObject[property])
-            })
-        }
-    }
-
     useEffect(() => {
-        if (themeSchema) {
-            applyTheme(themeSchema)
+        const vars = paletteToCssVars(getPalette(themeSchema, mode))
+        const root = document.documentElement
+
+        Object.entries(vars).forEach(([property, value]) => {
+            root.style.setProperty(property, value)
+        })
+
+        try {
+            localStorage.setItem(THEME_VARS_CACHE_KEY, JSON.stringify(vars))
+        } catch {
+            // Storage unavailable (private mode); only first paint is affected.
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [themeSchema, mode])
 }
 

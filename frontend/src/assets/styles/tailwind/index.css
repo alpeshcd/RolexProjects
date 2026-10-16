@@ -3,8 +3,9 @@
 @tailwind utilities;
 
 /*
- * Rolex design tokens — "Emerald & Gold".
- * Keep in sync with src/configs/palette.config.ts (used for Ant Design).
+ * Rolex design tokens. These are the first-paint defaults (Emerald scheme);
+ * at runtime useTheme overrides them from src/configs/palette.config.ts
+ * for the selected color scheme.
  */
 @layer base {
 	:root {
@@ -45,7 +46,6 @@
 		/* Tag tones (soft tinted tags) */
 		--tag-blue: #2c6cb0;
 		--tag-geekblue: #4a5fa8;
-		--tag-cyan: #0b6b4d;
 		--tag-green: #2e8b57;
 		--tag-lime: #5f7d1f;
 		--tag-gold: #94712c;
@@ -104,7 +104,6 @@
 
 		--tag-blue: #6aa6e8;
 		--tag-geekblue: #8d9de3;
-		--tag-cyan: #3ab088;
 		--tag-green: #46b37a;
 		--tag-lime: #9cc25a;
 		--tag-gold: #cfaa5e;

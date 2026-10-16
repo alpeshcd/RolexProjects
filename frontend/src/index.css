@@ -65,7 +65,7 @@
 /* Soft tinted tags tuned to the palette (Tag color="blue" etc.) */
 .ant-tag-blue { --tag-tone: var(--tag-blue); }
 .ant-tag-geekblue { --tag-tone: var(--tag-geekblue); }
-.ant-tag-cyan { --tag-tone: var(--tag-cyan); }
+.ant-tag-cyan { --tag-tone: var(--primary); }
 .ant-tag-green { --tag-tone: var(--tag-green); }
 .ant-tag-lime { --tag-tone: var(--tag-lime); }
 .ant-tag-gold { --tag-tone: var(--tag-gold); }
