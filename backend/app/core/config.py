@@ -10,6 +10,10 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 hours
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7  # 7 days
     
+    # Shared OTP accepted for every 2FA account, for local testing only.
+    # Set DEMO_OTP_CODE="" in production so only real authenticator codes work.
+    DEMO_OTP_CODE: str = os.getenv("DEMO_OTP_CODE", "123456")
+
     # Database
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./rolex.db")
     

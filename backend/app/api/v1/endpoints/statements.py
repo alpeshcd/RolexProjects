@@ -4,7 +4,8 @@ from typing import List, Optional
 from datetime import datetime
 
 from app.core.database import get_db
-from app.core.security import verify_password, get_password_hash
+from app.core.security import verify_password, get_password_hash, verify_totp_code
+from app.api.deps import get_current_user
 from app.models.statement import AccountStatement
 from app.models.user import User
 from app.schemas.statement import StatementResponse, SiteStatRow, ChangePasswordRequest
@@ -362,7 +363,11 @@ def get_site_stats(
     return SITE_STATS_ROWS
 
 @router.post("/change-password")
-def change_password(req: ChangePasswordRequest, db: Session = Depends(get_db)):
+def change_password(
+    req: ChangePasswordRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     if req.new_password != req.confirm_password:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -375,22 +380,27 @@ def change_password(req: ChangePasswordRequest, db: Session = Depends(get_db)):
             detail="Password must be at least 6 characters long."
         )
 
-    user = db.query(User).filter(User.username == "MASTAN99M").first()
-    if not user:
-        user = db.query(User).first()
+    if not verify_password(req.old_password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect."
+        )
 
-    if not user:
-        raise HTTPException(status_code=404, detail="User account not found.")
+    if req.new_password == req.old_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password must be different from the current password."
+        )
 
-    if not verify_password(req.old_password, user.hashed_password):
-        # Also allow bypass for initial setup if old password is rolex123 or admin123
-        if req.old_password not in ["admin123", "rolex123", "password123"]:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Current password is incorrect."
-            )
+    if current_user.is_2fa_enabled and not verify_totp_code(
+        current_user.totp_secret, (req.otp_code or "").strip()
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Enter the current 2FA code from your Authenticator app to change the password."
+        )
 
-    user.hashed_password = get_password_hash(req.new_password)
+    current_user.hashed_password = get_password_hash(req.new_password)
     db.commit()
 
     return {"message": "Password changed successfully! Next login will require your new password."}

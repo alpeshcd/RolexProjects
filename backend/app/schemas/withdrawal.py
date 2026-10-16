@@ -1,10 +1,10 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 
 class WithdrawalBase(BaseModel):
-    site: Optional[str] = "Mastan99"
-    domain: Optional[str] = "mastan99.com"
+    site: Optional[str] = None
+    domain: Optional[str] = None
     username: str
     master: Optional[str] = "MASTAN99M"
     added_by: Optional[str] = None
@@ -12,7 +12,7 @@ class WithdrawalBase(BaseModel):
     account_no: Optional[str] = None
     ifsc_code: Optional[str] = None
     bank_name: Optional[str] = None
-    amount: float
+    amount: float = Field(gt=0)
     type: Optional[str] = "Client"
     utr_number: Optional[str] = None
 

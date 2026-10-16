@@ -1,5 +1,5 @@
-from typing import Optional
-from pydantic import BaseModel, ConfigDict
+from typing import Literal, Optional
+from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime
 
 class UserBase(BaseModel):
@@ -32,8 +32,11 @@ class ClientCreateRequest(BaseModel):
     balance: Optional[float] = 0.0
 
 class UserUpdateBalance(BaseModel):
-    amount: float
-    operation: str = "deposit"  # "deposit" or "withdraw"
+    amount: float = Field(gt=0)
+    operation: Literal["deposit", "withdraw"] = "deposit"
+
+class UserStatusUpdate(BaseModel):
+    is_active: bool
 
 class UserDetail(UserBase):
     id: int

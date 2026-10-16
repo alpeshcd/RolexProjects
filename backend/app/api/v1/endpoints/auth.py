@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Header
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from typing import Optional
 
 from app.core.database import get_db
+from app.api.deps import get_current_user, is_staff
 from app.core.security import (
     verify_password,
     get_password_hash,
@@ -85,7 +85,7 @@ def login(login_data: LoginRequest, db: Session = Depends(get_db)):
     
     # Case-insensitive username lookup
     user = db.query(User).filter(User.username.ilike(login_data.username.strip())).first()
-    if not user or not verify_password(login_data.password, user.hashed_password):
+    if not is_staff(user) or not verify_password(login_data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid username or password"
@@ -128,18 +128,17 @@ def verify_2fa(req: Verify2FARequest, db: Session = Depends(get_db)):
 
     username = payload.get("sub")
     user = db.query(User).filter(User.username == username).first()
-    if not user:
+    if not is_staff(user) or not user.is_active:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired 2FA session. Please login again."
         )
 
-    # Verify OTP code with user's secret (or test code 123456)
-    is_valid = verify_totp_code(user.totp_secret or "DEMOSECRET", req.otp_code.strip())
+    is_valid = verify_totp_code(user.totp_secret, req.otp_code.strip())
     if not is_valid:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid OTP code. Please enter the current code from your Authenticator app (e.g. 123456)."
+            detail="Invalid OTP code. Please enter the current code from your Authenticator app."
         )
 
     access_token = create_access_token(user.username)
@@ -162,7 +161,7 @@ def refresh_token(req: RefreshTokenRequest, db: Session = Depends(get_db)):
 
     username = payload.get("sub")
     user = db.query(User).filter(User.username == username).first()
-    if not user or not user.is_active:
+    if not is_staff(user) or not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not found or inactive"
@@ -176,25 +175,6 @@ def refresh_token(req: RefreshTokenRequest, db: Session = Depends(get_db)):
         user=UserResponse.model_validate(user),
         message="Token refreshed successfully"
     )
-
-def get_current_user(authorization: Optional[str] = Header(None), db: Session = Depends(get_db)) -> User:
-    if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated"
-        )
-    token = authorization.split(" ")[1]
-    payload = decode_token(token)
-    if not payload or payload.get("type") != "access":
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired authentication token"
-        )
-    username = payload.get("sub")
-    user = db.query(User).filter(User.username == username).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    return user
 
 @router.get("/me", response_model=UserResponse)
 def get_me(current_user: User = Depends(get_current_user)):

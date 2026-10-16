@@ -151,10 +151,13 @@ def create_deposit(dep_in: DepositCreate, db: Session = Depends(get_db)):
     next_id = max_id + 1
 
     clean_user = dep_in.username.strip().upper()
-    user_obj = db.query(User).filter(User.username.ilike(clean_user)).first()
+    user_obj = db.query(User).filter(User.username.ilike(clean_user), User.role == "client").first()
+    if not user_obj:
+        raise HTTPException(status_code=404, detail=f"Client '{clean_user}' not found")
 
-    site_name = dep_in.site or (user_obj.site if user_obj else "Mastan99")
-    domain_name = user_obj.domain if user_obj else "mastan99.com"
+    # The client's own site/domain are the source of truth
+    site_name = user_obj.site or dep_in.site or "Mastan99"
+    domain_name = user_obj.domain or "mastan99.com"
 
     new_dep = Deposit(
         deposit_id=next_id,
@@ -211,6 +214,9 @@ def approve_deposit(deposit_id: int, db: Session = Depends(get_db)):
     dep = db.query(Deposit).filter(Deposit.id == deposit_id).first()
     if not dep:
         raise HTTPException(status_code=404, detail="Deposit not found")
+    if dep.status != "Pending":
+        # Prevents crediting the same deposit twice
+        raise HTTPException(status_code=409, detail=f"Deposit is already {dep.status}")
 
     dep.status = "Approved"
     dep.approved_at = datetime.utcnow()
@@ -274,6 +280,8 @@ def reject_deposit(deposit_id: int, db: Session = Depends(get_db)):
     dep = db.query(Deposit).filter(Deposit.id == deposit_id).first()
     if not dep:
         raise HTTPException(status_code=404, detail="Deposit not found")
+    if dep.status != "Pending":
+        raise HTTPException(status_code=409, detail=f"Deposit is already {dep.status}")
 
     dep.status = "Rejected"
     dep.rejected_at = datetime.utcnow()

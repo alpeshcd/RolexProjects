@@ -8,7 +8,9 @@ from app.core.database import get_db
 from app.core.security import get_password_hash
 from app.models.user import User
 from app.models.dashboard import DashboardStat
-from app.schemas.user import UserDetail, UserCreate, ClientCreateRequest, UserUpdateBalance, StatsSummary
+from app.models.statement import AccountStatement
+from app.api.deps import CLIENT_ROLE, get_current_user
+from app.schemas.user import UserDetail, UserCreate, ClientCreateRequest, UserUpdateBalance, UserStatusUpdate, StatsSummary
 
 router = APIRouter()
 
@@ -74,7 +76,8 @@ def get_users(
     db: Session = Depends(get_db)
 ):
     seed_clients_if_needed(db)
-    query = db.query(User)
+    # Staff accounts (admin, operators, extra users) are not clients
+    query = db.query(User).filter(User.role == CLIENT_ROLE)
 
     if domain and domain.strip() and domain.lower() not in ["all", "select domain"]:
         d = domain.strip().lower()
@@ -107,7 +110,7 @@ def get_users(
             upline_share=u.upline_share or 0.0,
             upline=u.upline,
             domain=u.domain,
-            client_id=u.client_id or (2619000 + u.id),
+            client_id=u.client_id,
             mobile=u.mobile or "-",
             master=u.master or "MASTAN99M",
             site=u.site or (u.domain.split('.')[0].capitalize() if u.domain else "Mastan99"),
@@ -216,8 +219,11 @@ def create_user(user_in: UserCreate, db: Session = Depends(get_db)):
             detail="Username already exists"
         )
     
-    max_id = db.query(func.max(User.client_id)).scalar() or 2619778
-    next_client_id = max_id + 1
+    is_client = (user_in.role or "").lower() == CLIENT_ROLE
+    next_client_id = None
+    if is_client:
+        max_id = db.query(func.max(User.client_id)).scalar() or 2619778
+        next_client_id = user_in.client_id or max_id + 1
 
     new_user = User(
         username=user_in.username.strip().upper(),
@@ -229,7 +235,7 @@ def create_user(user_in: UserCreate, db: Session = Depends(get_db)):
         upline_share=user_in.upline_share or 0.0,
         upline=user_in.upline or "DIRECT",
         domain=user_in.domain or "mastan99.com",
-        client_id=user_in.client_id or next_client_id,
+        client_id=next_client_id,
         mobile=user_in.mobile or "-",
         master=user_in.master or "MASTAN99M",
         site=user_in.site or "Mastan99",
@@ -245,29 +251,80 @@ def create_user(user_in: UserCreate, db: Session = Depends(get_db)):
     return new_user
 
 @router.put("/{user_id}/balance", response_model=UserDetail)
-def update_user_balance(user_id: int, bal: UserUpdateBalance, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.id == user_id).first()
+def update_user_balance(
+    user_id: int,
+    bal: UserUpdateBalance,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    user = db.query(User).filter(User.id == user_id, User.role == CLIENT_ROLE).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Client not found")
+
+    is_debit = bal.operation == "withdraw"
+    if is_debit:
+        if (user.balance or 0.0) < bal.amount:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Insufficient balance")
+        user.balance = (user.balance or 0.0) - bal.amount
+    else:
+        user.balance = (user.balance or 0.0) + bal.amount
+        user.deposit_count = (user.deposit_count or 0) + 1
+
+    # Keep the A/C statement in step with the balance
+    domain = user.domain or "mastan99.com"
+    db.add(AccountStatement(
+        site_user=f"{user.username} ({domain})",
+        domain=domain,
+        username=user.username,
+        date=datetime.utcnow(),
+        event_type="-",
+        amount=-bal.amount if is_debit else bal.amount,
+        total=-bal.amount if is_debit else bal.amount,
+        balance=user.balance,
+        type="Withdraw" if is_debit else "Deposit",
+        dc="Debit" if is_debit else "Credit",
+        description=f"Manual balance {'debit' if is_debit else 'credit'} by {current_user.username}",
+        created_at=datetime.utcnow(),
+    ))
+
+    db.commit()
+    db.refresh(user)
+    return user
+
+@router.get("/staff", response_model=List[UserDetail])
+def get_staff(db: Session = Depends(get_db)):
+    """Admin-panel users (Extra Users page): everyone who is not a client."""
+    return (
+        db.query(User)
+        .filter(User.role != CLIENT_ROLE)
+        .order_by(User.created_at.desc(), User.id.desc())
+        .all()
+    )
+
+@router.put("/{user_id}/status", response_model=UserDetail)
+def update_staff_status(
+    user_id: int,
+    payload: UserStatusUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    user = db.query(User).filter(User.id == user_id, User.role != CLIENT_ROLE).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-    
-    if bal.operation == "withdraw":
-        if user.balance < bal.amount:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Insufficient balance")
-        user.balance -= bal.amount
-    else:
-        user.balance += bal.amount
-        user.deposit_count = (user.deposit_count or 0) + 1
-        
+    if user.id == current_user.id and not payload.is_active:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="You cannot suspend your own account")
+    user.is_active = payload.is_active
     db.commit()
     db.refresh(user)
     return user
 
 @router.get("/stats/summary", response_model=StatsSummary)
 def get_stats_summary(db: Session = Depends(get_db)):
-    total_clients = db.query(User).count()
-    active_clients = db.query(User).filter(User.is_active == True).count()
-    total_bal = db.query(func.sum(User.balance)).scalar() or 0.0
-    total_upline = db.query(func.sum(User.upline_share)).scalar() or 0.0
+    clients = db.query(User).filter(User.role == CLIENT_ROLE)
+    total_clients = clients.count()
+    active_clients = clients.filter(User.is_active == True).count()
+    total_bal = clients.with_entities(func.sum(User.balance)).scalar() or 0.0
+    total_upline = clients.with_entities(func.sum(User.upline_share)).scalar() or 0.0
 
     return StatsSummary(
         total_clients=total_clients,

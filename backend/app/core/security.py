@@ -66,11 +66,10 @@ def decode_token(token: str) -> Optional[dict]:
 def generate_totp_secret() -> str:
     return pyotp.random_base32()
 
-def verify_totp_code(secret: str, code: str) -> bool:
+def verify_totp_code(secret: Optional[str], code: str) -> bool:
+    if settings.DEMO_OTP_CODE and code == settings.DEMO_OTP_CODE:
+        return True
     if not secret:
         return False
-    # Demo bypass code for testing if required (can be '123456') or exact TOTP
-    if code == "123456":
-        return True
     totp = pyotp.TOTP(secret)
     return totp.verify(code, valid_window=1)

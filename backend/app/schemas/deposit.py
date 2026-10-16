@@ -1,15 +1,15 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
 from datetime import datetime
 
 class DepositCreate(BaseModel):
     username: str
-    amount: float
+    amount: float = Field(gt=0)
     utr_number: str
     account_name: Optional[str] = None
     account_id: Optional[int] = None
     proof_image_url: Optional[str] = None
-    site: Optional[str] = "Mastan99"
+    site: Optional[str] = None
     type: Optional[str] = "Client"
 
 class DepositUpdateStatus(BaseModel):
@@ -43,7 +43,7 @@ class DepositResponse(BaseModel):
 class UTREntryCreate(BaseModel):
     utr_number: str
     account_name: str
-    amount: float
+    amount: float = Field(gt=0)
 
 class UTREntryResponse(BaseModel):
     id: int

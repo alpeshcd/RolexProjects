@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from typing import List, Optional
 from datetime import datetime
 
@@ -158,7 +159,7 @@ def search_clients(
     if not domain and not username:
         return []
 
-    query = db.query(User)
+    query = db.query(User).filter(User.role == "client")
 
     if domain and domain.strip() and domain.lower() not in ["all", "select domain", ""]:
         d_val = domain.strip().lower()
@@ -213,6 +214,7 @@ def create_portal_client(client_in: CreatePortalClient, db: Session = Depends(ge
         )
     
     clean_domain = client_in.domain.strip()
+    max_client_id = db.query(func.max(User.client_id)).scalar() or 2619778
     new_user = User(
         username=client_in.username.strip().upper(),
         full_name=client_in.full_name or client_in.username.strip(),
@@ -221,6 +223,8 @@ def create_portal_client(client_in: CreatePortalClient, db: Session = Depends(ge
         role="client",
         balance=client_in.balance or 0.0,
         domain=clean_domain,
+        site=(clean_domain.split(".")[0].capitalize() if clean_domain else "Mastan99"),
+        client_id=max_client_id + 1,
         upline=client_in.upline or "DIRECT",
         upline_share=client_in.upline_share or 0.0,
         is_active=True,

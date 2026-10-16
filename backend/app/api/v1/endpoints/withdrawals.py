@@ -319,13 +319,16 @@ def create_withdrawal(with_in: WithdrawalCreate, db: Session = Depends(get_db)):
     next_id = max_id + 1
 
     clean_user = with_in.username.strip().upper()
-    user_obj = db.query(User).filter(User.username.ilike(clean_user)).first()
+    user_obj = db.query(User).filter(User.username.ilike(clean_user), User.role == "client").first()
+    if not user_obj:
+        raise HTTPException(status_code=404, detail=f"Client '{clean_user}' not found")
 
-    site_name = with_in.site or (user_obj.site if user_obj else "Mastan99")
-    domain_name = user_obj.domain if user_obj else "mastan99.com"
+    # The client's own site/domain are the source of truth
+    site_name = user_obj.site or with_in.site or "Mastan99"
+    domain_name = user_obj.domain or "mastan99.com"
 
     # Check client balance
-    if user_obj and (user_obj.balance or 0.0) < with_in.amount:
+    if (user_obj.balance or 0.0) < with_in.amount:
         raise HTTPException(
             status_code=400,
             detail=f"Insufficient client balance (Current: ₹{user_obj.balance:,.2f}, Requested: ₹{with_in.amount:,.2f})"
@@ -386,6 +389,19 @@ def approve_withdrawal(withdrawal_id: int, payload: WithdrawalApprovePayload, db
     with_rec = db.query(Withdrawal).filter(Withdrawal.id == withdrawal_id).first()
     if not with_rec:
         raise HTTPException(status_code=404, detail="Withdrawal not found")
+    if with_rec.status != "Pending":
+        # Prevents debiting the same payout twice
+        raise HTTPException(status_code=409, detail=f"Withdrawal is already {with_rec.status}")
+
+    # Re-check funds: other payouts may have been approved since this request was made
+    user = db.query(User).filter(User.username.ilike(with_rec.username)).first()
+    if not user:
+        raise HTTPException(status_code=404, detail=f"Client '{with_rec.username}' not found")
+    if (user.balance or 0.0) < with_rec.amount:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Insufficient client balance (Current: ₹{user.balance or 0:,.2f}, Payout: ₹{with_rec.amount:,.2f})"
+        )
 
     with_rec.status = "Approved"
     with_rec.utr_number = payload.utr_number.strip()
@@ -393,10 +409,9 @@ def approve_withdrawal(withdrawal_id: int, payload: WithdrawalApprovePayload, db
     with_rec.rejected_at = None
     with_rec.canceled_at = None
 
-    # Tightly debit client balance & increment withdrawal count
-    user = db.query(User).filter(User.username.ilike(with_rec.username)).first()
+    # Debit client balance (funds were verified above)
     if user:
-        user.balance = max(0.0, (user.balance or 0.0) - with_rec.amount)
+        user.balance = (user.balance or 0.0) - with_rec.amount
 
     # Insert debit statement audit
     stmt = AccountStatement(
@@ -455,6 +470,8 @@ def reject_withdrawal(withdrawal_id: int, payload: WithdrawalRejectPayload, db: 
     with_rec = db.query(Withdrawal).filter(Withdrawal.id == withdrawal_id).first()
     if not with_rec:
         raise HTTPException(status_code=404, detail="Withdrawal not found")
+    if with_rec.status != "Pending":
+        raise HTTPException(status_code=409, detail=f"Withdrawal is already {with_rec.status}")
 
     with_rec.status = "Rejected"
     with_rec.rejection_reason = payload.reason
@@ -501,6 +518,8 @@ def cancel_withdrawal(withdrawal_id: int, db: Session = Depends(get_db)):
     with_rec = db.query(Withdrawal).filter(Withdrawal.id == withdrawal_id).first()
     if not with_rec:
         raise HTTPException(status_code=404, detail="Withdrawal not found")
+    if with_rec.status != "Pending":
+        raise HTTPException(status_code=409, detail=f"Withdrawal is already {with_rec.status}")
 
     with_rec.status = "Canceled"
     with_rec.canceled_at = datetime.utcnow()
