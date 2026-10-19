@@ -141,12 +141,6 @@ export const protectedRoutes: Routes = [
         authority: [],
     },
     {
-        key: 'rolex.directMaster',
-        path: '/direct-master',
-        component: lazy(() => import('@/views/rolex/pages').then(m => ({ default: m.DirectMasterView }))),
-        authority: [],
-    },
-    {
         key: 'rolex.changePassword',
         path: '/change-password',
         component: lazy(() => import('@/views/rolex/pages').then(m => ({ default: m.ChangePasswordView }))),

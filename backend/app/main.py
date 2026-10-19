@@ -52,7 +52,6 @@ def search_query(query: str = ""):
         {"title": "Withdraw Payouts", "url": "/withdraw", "categoryTitle": "Banking"},
         {"title": "Extra Users", "url": "/extra-users", "categoryTitle": "Security"},
         {"title": "A/C Statement", "url": "/statement", "categoryTitle": "Ledger"},
-        {"title": "Direct Master", "url": "/direct-master", "categoryTitle": "Ledger"},
         {"title": "Site User Stats", "url": "/site-user-stats", "categoryTitle": "Analytics"},
         {"title": "Change Password", "url": "/change-password", "categoryTitle": "Settings"},
     ]

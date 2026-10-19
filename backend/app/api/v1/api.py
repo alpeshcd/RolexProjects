@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from app.api.deps import get_current_user
-from app.api.v1.endpoints import auth, users, dashboard, global_search, accounts, deposits, withdrawals, statements, direct_masters
+from app.api.v1.endpoints import auth, users, dashboard, global_search, accounts, deposits, withdrawals, statements
 
 api_router = APIRouter()
 
@@ -15,6 +15,5 @@ api_router.include_router(accounts.router, prefix="/accounts", tags=["Bank & Pay
 api_router.include_router(deposits.router, prefix="/deposits", tags=["Deposits & UTR Verification"], dependencies=protected)
 api_router.include_router(withdrawals.router, prefix="/withdrawals", tags=["Withdrawals & Payouts"], dependencies=protected)
 api_router.include_router(statements.router, prefix="/statements", tags=["Statements & Stats"], dependencies=protected)
-api_router.include_router(direct_masters.router, prefix="/direct-masters", tags=["Direct Master Management"], dependencies=protected)
 
 
