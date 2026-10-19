@@ -9,6 +9,7 @@ import {
     FileTextOutlined,
     BarChartOutlined,
     KeyOutlined,
+    RiseOutlined,
     AppstoreOutlined,
     MenuFoldOutlined
 } from '@ant-design/icons'
@@ -26,6 +27,7 @@ const navigationIcon: NavigationIcons = {
     extraUsers: <UsergroupAddOutlined className="text-[17px]" />,
     statement: <FileTextOutlined className="text-[17px]" />,
     siteStats: <BarChartOutlined className="text-[17px]" />,
+    directMaster: <RiseOutlined className="text-[17px]" />,
     changePassword: <KeyOutlined className="text-[17px]" />,
     collapseMenu: <MenuFoldOutlined />,
 }

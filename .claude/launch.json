@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "rolex-backend",
+      "runtimeExecutable": "backend/venv/bin/uvicorn",
+      "runtimeArgs": ["app.main:app", "--reload", "--port", "8001", "--app-dir", "backend"],
+      "port": 8001
+    },
+    {
+      "name": "rolex-frontend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "frontend", "run", "dev"],
+      "port": 5173
+    }
+  ]
+}

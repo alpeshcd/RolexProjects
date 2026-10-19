@@ -11,6 +11,7 @@ import StatementViewComponent from './StatementView'
 import SiteStatsViewComponent from './SiteStatsView'
 import ExtraUsersViewComponent from './ExtraUsersView'
 import ChangePasswordViewComponent from './ChangePasswordView'
+import DirectMasterViewComponent from './DirectMasterView'
 
 export const GlobalSearchView = GlobalSearchViewComponent
 export const ClientsView = ClientsViewComponent
@@ -23,3 +24,4 @@ export const ExtraUsersView = ExtraUsersViewComponent
 export const StatementView = StatementViewComponent
 export const SiteStatsView = SiteStatsViewComponent
 export const ChangePasswordView = ChangePasswordViewComponent
+export const DirectMasterView = DirectMasterViewComponent

@@ -221,6 +221,16 @@ const navigationConfig: NavigationTree[] = [
         subMenu: [],
     },
     {
+        key: 'rolex.directMaster',
+        path: '/direct-master',
+        title: 'Direct Master',
+        translateKey: 'nav.directMaster',
+        icon: 'directMaster',
+        type: NAV_ITEM_TYPE_ITEM,
+        authority: [],
+        subMenu: [],
+    },
+    {
         key: 'rolex.changePassword',
         path: '/change-password',
         title: 'Change Password',
