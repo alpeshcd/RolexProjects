@@ -9,6 +9,23 @@ export async function apiGetAccounts(params?: Record<string, any>): Promise<Bank
     })
 }
 
+export async function apiUploadQrImage(file: File): Promise<{ url: string }> {
+    const data = new FormData()
+    data.append('file', file)
+    return ApiService.fetchDataWithAxios<{ url: string }, FormData>({
+        url: '/api/v1/accounts/qr-upload',
+        method: 'post',
+        data,
+    })
+}
+
+export async function apiGetAccountUsers(): Promise<string[]> {
+    return ApiService.fetchDataWithAxios<string[]>({
+        url: '/api/v1/accounts/users',
+        method: 'get',
+    })
+}
+
 export async function apiGetActiveAccounts(): Promise<BankAccount[]> {
     return ApiService.fetchDataWithAxios<BankAccount[]>({
         url: '/api/v1/accounts/active',

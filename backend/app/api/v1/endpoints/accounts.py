@@ -1,8 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+import os
+import uuid
+from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime
 
+from app.core.config import settings
 from app.core.database import get_db
 from app.models.account import BankAccount
 from app.schemas.account import AccountCreate, AccountUpdate, AccountResponse
@@ -305,6 +309,7 @@ def get_accounts(
     user: Optional[str] = Query(None),
     name: Optional[str] = Query(None),
     account_number: Optional[str] = Query(None),
+    amount_upto: Optional[float] = Query(None, description="Only accounts whose max amount is at most this value"),
     status: Optional[str] = Query(None),
     type: Optional[str] = Query(None),
     db: Session = Depends(get_db)
@@ -313,13 +318,16 @@ def get_accounts(
     query = db.query(BankAccount)
 
     if user and user.strip() and user.lower() not in ["all", "select user"]:
-        query = query.filter(BankAccount.user.ilike(f"%{user.strip()}%"))
+        query = query.filter(func.lower(BankAccount.user) == user.strip().lower())
 
     if name and name.strip():
-        query = query.filter(BankAccount.name.ilike(f"%{name.strip()}%"))
+        query = query.filter(BankAccount.name.icontains(name.strip(), autoescape=True))
 
     if account_number and account_number.strip():
-        query = query.filter(BankAccount.account_number.ilike(f"%{account_number.strip()}%"))
+        query = query.filter(BankAccount.account_number.icontains(account_number.strip(), autoescape=True))
+
+    if amount_upto is not None:
+        query = query.filter(BankAccount.max_amount <= amount_upto)
 
     if status and status.strip() and status.lower() not in ["all", "select status"]:
         query = query.filter(BankAccount.status.ilike(status.strip()))
@@ -355,6 +363,49 @@ def get_accounts(
         )
         results.append(res)
     return results
+
+QR_MAX_BYTES = 2 * 1024 * 1024
+
+def _qr_image_extension(data: bytes) -> Optional[str]:
+    """Detect the image type from its first bytes; SVG and anything else is refused."""
+    if data.startswith(b"\x89PNG\r\n\x1a\n"):
+        return ".png"
+    if data.startswith(b"\xff\xd8\xff"):
+        return ".jpg"
+    if data[:6] in (b"GIF87a", b"GIF89a"):
+        return ".gif"
+    if data[:4] == b"RIFF" and data[8:12] == b"WEBP":
+        return ".webp"
+    return None
+
+@router.post("/qr-upload")
+async def upload_qr_image(file: UploadFile = File(...)):
+    """Store a QR code image and return the URL to save as the account's qr_code_url."""
+    data = await file.read(QR_MAX_BYTES + 1)
+    if len(data) > QR_MAX_BYTES:
+        raise HTTPException(status_code=413, detail="QR image must be 2 MB or smaller.")
+    ext = _qr_image_extension(data)
+    if not ext:
+        raise HTTPException(status_code=400, detail="QR code must be a PNG, JPG, WEBP or GIF image.")
+
+    qr_dir = os.path.join(settings.UPLOAD_DIR, "qr")
+    os.makedirs(qr_dir, exist_ok=True)
+    filename = f"{uuid.uuid4().hex}{ext}"
+    with open(os.path.join(qr_dir, filename), "wb") as fh:
+        fh.write(data)
+    return {"url": f"/api/uploads/qr/{filename}"}
+
+@router.get("/users", response_model=List[str])
+def get_account_users(db: Session = Depends(get_db)):
+    """Distinct account owners, for the User filter dropdown."""
+    rows = (
+        db.query(BankAccount.user)
+        .filter(BankAccount.user.isnot(None), BankAccount.user != "")
+        .distinct()
+        .order_by(BankAccount.user)
+        .all()
+    )
+    return [r[0] for r in rows]
 
 @router.get("/active", response_model=List[AccountResponse])
 def get_active_deposit_accounts(db: Session = Depends(get_db)):

@@ -1,4 +1,3 @@
-import { useNavigate } from 'react-router-dom'
 import SideNav from '@/components/template/SideNav'
 import Header from '@/components/template/Header'
 import SideNavToggle from '@/components/template/SideNavToggle'
@@ -11,10 +10,8 @@ import ThemeColorPicker from '@/components/template/ThemeColorPicker'
 import useResponsive from '@/utils/hooks/useResponsive'
 import { LAYOUT_COLLAPSIBLE_SIDE } from '@/constants/theme.constant'
 import type { CommonProps } from '@/@types/common'
-import { PiMagnifyingGlassDuotone } from 'react-icons/pi'
 
 const CollapsibleSide = ({ children }: CommonProps) => {
-    const navigate = useNavigate()
     const { larger, smaller } = useResponsive()
 
     return (
@@ -34,26 +31,10 @@ const CollapsibleSide = ({ children }: CommonProps) => {
                                 {larger.lg && (
                                     <SideNavToggle className="text-ink-2 hover:text-ink hover:bg-surface-hover rounded-lg p-1.5 transition-colors cursor-pointer" />
                                 )}
-                                <button
-                                    type="button"
-                                    onClick={() => navigate('/global-search')}
-                                    className="hidden sm:flex items-center gap-2 h-9 w-64 lg:w-80 px-3 rounded-lg border border-line bg-surface-2 text-ink-3 text-[13px] hover:border-line-strong transition-colors"
-                                >
-                                    <PiMagnifyingGlassDuotone className="text-base" />
-                                    <span className="flex-1 text-left">Search clients, UTR, accounts…</span>
-                                </button>
                             </div>
                         }
                         headerEnd={
                             <div className="flex items-center gap-1.5 sm:gap-2">
-                                <button
-                                    type="button"
-                                    aria-label="Search"
-                                    onClick={() => navigate('/global-search')}
-                                    className="sm:hidden h-9 w-9 inline-flex items-center justify-center rounded-lg border border-line bg-surface text-ink-2"
-                                >
-                                    <PiMagnifyingGlassDuotone className="text-lg" />
-                                </button>
                                 <ThemeColorPicker />
                                 <ThemeToggle />
                                 <Notification />

@@ -1,5 +1,7 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from app.core.config import settings
 from app.core.database import engine, Base
 from app.api.v1.api import api_router
@@ -24,6 +26,10 @@ app.add_middleware(
 )
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
+
+# Uploaded files (account QR images). Under /api so the frontend dev proxy forwards it.
+os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+app.mount("/api/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
 
 @app.get("/")
 def root():

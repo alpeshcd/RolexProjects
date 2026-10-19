@@ -1,13 +1,16 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, date, time, timedelta
 
 from app.core.database import get_db
 from app.core.security import verify_password, get_password_hash, verify_totp_code
-from app.api.deps import get_current_user
+from app.api.deps import CLIENT_ROLE, get_current_user
 from app.models.statement import AccountStatement
 from app.models.user import User
+from app.models.deposit import Deposit
+from app.models.withdrawal import Withdrawal
 from app.schemas.statement import StatementResponse, SiteStatRow, ChangePasswordRequest
 
 router = APIRouter()
@@ -236,63 +239,12 @@ SEED_STATEMENTS = [
     },
 ]
 
-SITE_STATS_ROWS = [
-    {
-        "id": 1,
-        "master_id": 3894,
-        "username": "Mastan777",
-        "total_clients": 2,
-        "total_approved_deposit": 15300.0,
-        "number_approved_deposit": 8,
-        "total_rejected_deposit": 0.0,
-        "number_rejected_deposit": 0,
-        "total_approved_withdraw": 27000.0,
-        "number_approved_withdraw": 5,
-        "total_rejected_withdraw": 0.0,
-        "number_rejected_withdraw": 0,
-    },
-    {
-        "id": 2,
-        "master_id": 3895,
-        "username": "Mastan365m",
-        "total_clients": 24,
-        "total_approved_deposit": 112070.0,
-        "number_approved_deposit": 69,
-        "total_rejected_deposit": 17300.0,
-        "number_rejected_deposit": 10,
-        "total_approved_withdraw": 43067.0,
-        "number_approved_withdraw": 15,
-        "total_rejected_withdraw": 21840.0,
-        "number_rejected_withdraw": 3,
-    },
-    {
-        "id": 3,
-        "master_id": 3896,
-        "username": "Mastan99m",
-        "total_clients": 22,
-        "total_approved_deposit": 306632.0,
-        "number_approved_deposit": 187,
-        "total_rejected_deposit": 25000.0,
-        "number_rejected_deposit": 47,
-        "total_approved_withdraw": 495722.0,
-        "number_approved_withdraw": 92,
-        "total_rejected_withdraw": 258898.0,
-        "number_rejected_withdraw": 32,
-    },
-    {
-        "id": 4,
-        "master_id": 3897,
-        "username": "Mastanreddymas",
-        "total_clients": 2,
-        "total_approved_deposit": 61919.0,
-        "number_approved_deposit": 41,
-        "total_rejected_deposit": 14000.0,
-        "number_rejected_deposit": 14,
-        "total_approved_withdraw": 15320.0,
-        "number_approved_withdraw": 7,
-        "total_rejected_withdraw": 9100.0,
-        "number_rejected_withdraw": 9,
-    },
+# Site master accounts shown on the Site User Stats page, keyed by client domain
+SITE_MASTERS = [
+    {"id": 1, "master_id": 3894, "username": "Mastan777", "domain": "mastan247.club"},
+    {"id": 2, "master_id": 3895, "username": "Mastan365m", "domain": "mastan365.com"},
+    {"id": 3, "master_id": 3896, "username": "Mastan99m", "domain": "mastan99.com"},
+    {"id": 4, "master_id": 3897, "username": "Mastanreddymas", "domain": "mastanreddy.com"},
 ]
 
 def seed_statements_if_needed(db: Session):
@@ -357,10 +309,62 @@ def get_account_statements(
 
 @router.get("/site-stats", response_model=List[SiteStatRow])
 def get_site_stats(
-    start_date: Optional[str] = Query(None),
-    end_date: Optional[str] = Query(None),
+    start_date: Optional[date] = Query(None, description="From this day (YYYY-MM-DD)"),
+    end_date: Optional[date] = Query(None, description="Up to and including this day (YYYY-MM-DD)"),
+    db: Session = Depends(get_db),
 ):
-    return SITE_STATS_ROWS
+    """Per-site deposit/withdrawal totals for the date range, computed from real records."""
+    if start_date and end_date and start_date > end_date:
+        raise HTTPException(status_code=400, detail="Start date must be on or before end date.")
+
+    start = datetime.combine(start_date, time.min) if start_date else None
+    end = datetime.combine(end_date + timedelta(days=1), time.min) if end_date else None
+
+    def totals_by_domain_and_status(model):
+        q = db.query(
+            func.lower(model.domain),
+            model.status,
+            func.count(model.id),
+            func.coalesce(func.sum(model.amount), 0.0),
+        )
+        if start:
+            q = q.filter(model.date >= start)
+        if end:
+            q = q.filter(model.date < end)
+        rows = q.group_by(func.lower(model.domain), model.status).all()
+        return {(d, (s or "").lower()): (int(c), float(a)) for d, s, c, a in rows}
+
+    deposits = totals_by_domain_and_status(Deposit)
+    withdrawals = totals_by_domain_and_status(Withdrawal)
+    clients = dict(
+        db.query(func.lower(User.domain), func.count(User.id))
+        .filter(User.role == CLIENT_ROLE)
+        .group_by(func.lower(User.domain))
+        .all()
+    )
+
+    results = []
+    for site in SITE_MASTERS:
+        dom = site["domain"]
+        app_dep = deposits.get((dom, "approved"), (0, 0.0))
+        rej_dep = deposits.get((dom, "rejected"), (0, 0.0))
+        app_wd = withdrawals.get((dom, "approved"), (0, 0.0))
+        rej_wd = withdrawals.get((dom, "rejected"), (0, 0.0))
+        results.append(SiteStatRow(
+            id=site["id"],
+            master_id=site["master_id"],
+            username=site["username"],
+            total_clients=clients.get(dom, 0),
+            total_approved_deposit=app_dep[1],
+            number_approved_deposit=app_dep[0],
+            total_rejected_deposit=rej_dep[1],
+            number_rejected_deposit=rej_dep[0],
+            total_approved_withdraw=app_wd[1],
+            number_approved_withdraw=app_wd[0],
+            total_rejected_withdraw=rej_wd[1],
+            number_rejected_withdraw=rej_wd[0],
+        ))
+    return results
 
 @router.post("/change-password")
 def change_password(

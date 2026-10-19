@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { Form, Input, Button, Checkbox, Space, Tag } from 'antd'
-import { UserOutlined, LockOutlined } from '@ant-design/icons'
+import { Form, Input, Button, Checkbox } from 'antd'
+import { UserOutlined, LockOutlined, ArrowRightOutlined } from '@ant-design/icons'
 import { useAuth } from '@/auth'
+import classNames from '@/utils/classNames'
 import type { CommonProps } from '@/@types/common'
 import type { ReactNode } from 'react'
 
@@ -19,7 +20,6 @@ type SignInFormValues = {
 
 const SignInForm = (props: SignInFormProps) => {
     const { disableSubmit = false, className, setMessage, passwordHint } = props
-    const [form] = Form.useForm<SignInFormValues>()
     const [isSubmitting, setSubmitting] = useState<boolean>(false)
     const { signIn } = useAuth()
 
@@ -42,14 +42,9 @@ const SignInForm = (props: SignInFormProps) => {
         }
     }
 
-    const setQuickCredentials = (u: string, p: string) => {
-        form.setFieldsValue({ username: u, password: p })
-    }
-
     return (
-        <div className={className}>
+        <div className={classNames('auth-form', className)}>
             <Form
-                form={form}
                 layout="vertical"
                 initialValues={{ rememberMe: true }}
                 onFinish={onFinish}
@@ -57,37 +52,37 @@ const SignInForm = (props: SignInFormProps) => {
             >
                 <Form.Item
                     name="username"
-                    label={<span className="text-xs font-semibold text-ink-2">Username</span>}
+                    label={<span className="text-[13px] font-semibold text-ink">Username</span>}
                     rules={[{ required: true, message: 'Please enter your username' }]}
-                    style={{ marginBottom: 14 }}
+                    style={{ marginBottom: 18 }}
                 >
                     <Input
-                        prefix={<UserOutlined className="text-ink-3 text-xs mr-1" />}
-                        placeholder="Enter username"
+                        prefix={<UserOutlined className="text-ink-3 mr-1.5" />}
+                        placeholder="Enter your username"
                         autoComplete="username"
                         size="large"
-                        style={{ borderRadius: 8, fontSize: 13 }}
+                        style={{ borderRadius: 10, height: 46, fontSize: 14 }}
                     />
                 </Form.Item>
 
                 <Form.Item
                     name="password"
-                    label={<span className="text-xs font-semibold text-ink-2">Password</span>}
+                    label={<span className="text-[13px] font-semibold text-ink">Password</span>}
                     rules={[{ required: true, message: 'Please enter your password' }]}
-                    style={{ marginBottom: 14 }}
+                    style={{ marginBottom: 16 }}
                 >
                     <Input.Password
-                        prefix={<LockOutlined className="text-ink-3 text-xs mr-1" />}
-                        placeholder="Enter password"
+                        prefix={<LockOutlined className="text-ink-3 mr-1.5" />}
+                        placeholder="Enter your password"
                         autoComplete="current-password"
                         size="large"
-                        style={{ borderRadius: 8, fontSize: 13 }}
+                        style={{ borderRadius: 10, height: 46, fontSize: 14 }}
                     />
                 </Form.Item>
 
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center justify-between mb-6">
                     <Form.Item name="rememberMe" valuePropName="checked" noStyle>
-                        <Checkbox className="text-xs text-ink-2">Remember me</Checkbox>
+                        <Checkbox className="text-[13px] text-ink-2">Keep me signed in</Checkbox>
                     </Form.Item>
                     {passwordHint}
                 </div>
@@ -99,45 +94,24 @@ const SignInForm = (props: SignInFormProps) => {
                     loading={isSubmitting}
                     size="large"
                     style={{
-                        borderRadius: 8,
-                        height: 40,
+                        borderRadius: 10,
+                        height: 46,
                         fontWeight: 600,
-                        fontSize: 13,
+                        fontSize: 14,
                     }}
                 >
-                    {isSubmitting ? 'Signing in...' : 'Sign In'}
+                    {isSubmitting ? (
+                        'Signing in...'
+                    ) : (
+                        <span className="inline-flex items-center gap-2">
+                            Sign in
+                            <ArrowRightOutlined className="text-xs" />
+                        </span>
+                    )}
                 </Button>
             </Form>
-
-            {/* Sober Subtle Quick Fill Tags */}
-            <div className="mt-5 pt-4 border-t border-line text-center">
-                <div className="text-[11px] text-ink-3 mb-2">
-                    Quick Fill Test Credentials:
-                </div>
-                <Space size={6} wrap className="justify-center">
-                    <Tag
-                        className="cursor-pointer text-[11px] m-0 px-2 py-0.5 border border-line hover:border-primary hover:text-primary transition-colors"
-                        onClick={() => setQuickCredentials('admin', 'admin123')}
-                    >
-                        Admin
-                    </Tag>
-                    <Tag
-                        className="cursor-pointer text-[11px] m-0 px-2 py-0.5 border border-line hover:border-primary hover:text-primary transition-colors"
-                        onClick={() => setQuickCredentials('MASTAN99M', 'admin123')}
-                    >
-                        Super Master
-                    </Tag>
-                    <Tag
-                        className="cursor-pointer text-[11px] m-0 px-2 py-0.5 border border-line hover:border-primary hover:text-primary transition-colors"
-                        onClick={() => setQuickCredentials('demo', 'password123')}
-                    >
-                        Operator
-                    </Tag>
-                </Space>
-            </div>
         </div>
     )
 }
 
 export default SignInForm
-

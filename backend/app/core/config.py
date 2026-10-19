@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from typing import List
 from pydantic_settings import BaseSettings
 
@@ -16,6 +17,9 @@ class Settings(BaseSettings):
 
     # Database
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./rolex.db")
+
+    # Uploaded files (e.g. account QR images), served at /api/uploads
+    UPLOAD_DIR: str = os.getenv("UPLOAD_DIR", str(Path(__file__).resolve().parents[2] / "uploads"))
     
     # CORS Origins
     BACKEND_CORS_ORIGINS: List[str] = [

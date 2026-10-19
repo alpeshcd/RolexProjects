@@ -9,6 +9,7 @@ import navigationConfig from '@/configs/navigation.config'
 import appConfig from '@/configs/app.config'
 import { Link } from 'react-router-dom'
 import useAuth from '@/auth'
+import { getInitials, formatRole } from '@/utils/userDisplay'
 import { Tooltip } from 'antd'
 import { PiSignOutDuotone } from 'react-icons/pi'
 import {
@@ -51,9 +52,9 @@ const SideNav = ({
     const userAuthority = useSessionUser((state) => state.user.authority)
     const { signOut } = useAuth()
 
-    const roleName = (user as any)?.role || 'Admin'
-    const username = user?.full_name || user?.userName || (user as any)?.username || 'Admin'
-    const initials = username.slice(0, 2).toUpperCase()
+    const roleName = formatRole(user?.role || 'Admin')
+    const username = user?.full_name || user?.userName || user?.username || 'Admin'
+    const initials = getInitials(username)
 
     return (
         <aside
@@ -80,14 +81,14 @@ const SideNav = ({
                 {/* Signed-in user */}
                 {!sideNavCollapse && (
                     <div className="mx-3 mt-4 mb-2 p-2.5 rounded-xl bg-surface-2 border border-line flex items-center gap-3">
-                        <div className="h-9 w-9 rounded-lg bg-primary-subtle text-primary flex items-center justify-center text-xs font-bold shrink-0">
+                        <div className="h-9 w-9 rounded-full bg-primary-subtle text-primary flex items-center justify-center text-[12px] font-bold shrink-0">
                             {initials}
                         </div>
-                        <div className="flex flex-col min-w-0 flex-1">
+                        <div className="flex flex-col min-w-0 flex-1 leading-tight">
                             <span className="text-[13px] font-semibold text-ink truncate">
                                 {username}
                             </span>
-                            <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-accent truncate mt-0.5">
+                            <span className="text-[11px] font-medium text-ink-3 truncate mt-0.5">
                                 {roleName}
                             </span>
                         </div>

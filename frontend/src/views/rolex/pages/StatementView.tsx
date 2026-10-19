@@ -34,7 +34,7 @@ const StatementView = () => {
     const [loading, setLoading] = useState<boolean>(true)
 
     // Filter states
-    const [selectedUser, setSelectedUser] = useState<string>(queryUser || 'Mastan777 (mastan247.club)')
+    const [selectedUser, setSelectedUser] = useState<string>(queryUser || 'All')
     const [selectedType, setSelectedType] = useState<string>('')
     const [selectedDetail, setSelectedDetail] = useState<StatementItem | null>(null)
 
@@ -59,13 +59,25 @@ const StatementView = () => {
         fetchStatements()
     }, [])
 
+    // Follow ?user= when it changes while the page stays mounted (e.g. from Global Search)
+    useEffect(() => {
+        if (queryUser) setSelectedUser(queryUser)
+    }, [queryUser])
+
+    // Dropdown options come from the data so every option can match something
+    const accountOptions = Array.from(new Set(statements.map((s) => s.site_user).filter(Boolean))).sort()
+    const typeOptions = Array.from(new Set(statements.map((s) => s.type).filter(Boolean))).sort()
+
     const filteredStatements = statements.filter((item) => {
         if (selectedType && selectedType !== 'Select type' && selectedType !== 'All') {
             if (item.type.toLowerCase() !== selectedType.toLowerCase()) return false
         }
         if (selectedUser && selectedUser !== 'All') {
-            const cleanUser = selectedUser.split(' ')[0].toLowerCase()
-            if (!item.site_user.toLowerCase().includes(cleanUser)) return false
+            // Matches a full account label ("Mastan777 (mastan247.club)") or a bare username from ?user=
+            const sel = selectedUser.trim().toLowerCase()
+            const matchesAccount = (item.site_user || '').toLowerCase() === sel
+            const matchesUsername = (item.username || '').toLowerCase() === sel
+            if (!matchesAccount && !matchesUsername) return false
         }
         return true
     })
@@ -88,7 +100,7 @@ const StatementView = () => {
                 : latest,
         null,
     )
-    const currentBalance = latestEntry ? latestEntry.balance : 762427.20
+    const currentBalance = latestEntry ? latestEntry.balance : 0
 
     const exportToCSV = () => {
         const header = 'NO,DATE,EVENT TYPE,AMOUNT,TOTAL,BALANCE,TYPE,D/C,DESCRIPTION'
@@ -218,10 +230,7 @@ const StatementView = () => {
                             className="w-full"
                             options={[
                                 { label: 'All Accounts', value: 'All' },
-                                { label: 'Mastan777 (mastan247.club)', value: 'Mastan777 (mastan247.club)' },
-                                { label: 'Mastan365m (mastan365.com)', value: 'Mastan365m (mastan365.com)' },
-                                { label: 'Mastan99m (mastan99.com)', value: 'Mastan99m (mastan99.com)' },
-                                { label: 'Mastanreddymas (mastanreddy.com)', value: 'Mastanreddymas (mastanreddy.com)' },
+                                ...accountOptions.map((a) => ({ label: a, value: a })),
                             ]}
                         />
                     </div>
@@ -236,11 +245,7 @@ const StatementView = () => {
                             className="w-full"
                             options={[
                                 { label: 'All Types', value: 'All' },
-                                { label: 'Deposit', value: 'Deposit' },
-                                { label: 'Withdraw', value: 'Withdraw' },
-                                { label: 'Market Win', value: 'Market Win' },
-                                { label: 'Market Loss', value: 'Market Loss' },
-                                { label: 'Commission', value: 'Commission' },
+                                ...typeOptions.map((t) => ({ label: t, value: t })),
                             ]}
                         />
                     </div>

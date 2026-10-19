@@ -5,11 +5,16 @@ interface RolexLogoProps {
     collapsed?: boolean
     className?: string
     showSubtitle?: boolean
+    /** 'light' renders white text, for use on dark/brand backgrounds */
+    variant?: 'default' | 'light'
 }
 
-const LogoMark = ({ size = 32 }: { size?: number }) => (
+const LogoMark = ({ size = 32, light = false }: { size?: number; light?: boolean }) => (
     <div
-        className="rounded-[10px] bg-primary flex items-center justify-center shrink-0 ring-1 ring-inset ring-white/10"
+        className={classNames(
+            'rounded-[10px] flex items-center justify-center shrink-0 ring-1 ring-inset',
+            light ? 'bg-white/10 ring-white/20' : 'bg-primary ring-white/10',
+        )}
         style={{ width: size, height: size }}
     >
         <span
@@ -25,7 +30,10 @@ const RolexLogo: React.FC<RolexLogoProps> = ({
     collapsed = false,
     className,
     showSubtitle = false,
+    variant = 'default',
 }) => {
+    const isLight = variant === 'light'
+
     if (collapsed) {
         return (
             <div className={classNames('flex items-center justify-center select-none', className)}>
@@ -37,18 +45,33 @@ const RolexLogo: React.FC<RolexLogoProps> = ({
     return (
         <div className={classNames('flex flex-col select-none', className)}>
             <div className="flex items-center gap-2.5">
-                <LogoMark size={34} />
+                <LogoMark size={34} light={isLight} />
                 <div className="flex flex-col leading-none">
-                    <span className="text-[17px] font-bold tracking-tight text-ink">
+                    <span
+                        className={classNames(
+                            'text-[17px] font-bold tracking-tight',
+                            isLight ? 'text-white' : 'text-ink',
+                        )}
+                    >
                         Rolex
                     </span>
-                    <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-accent mt-1">
+                    <span
+                        className={classNames(
+                            'text-[10px] font-semibold uppercase tracking-[0.18em] mt-1',
+                            isLight ? 'text-[#e8cf94]' : 'text-accent',
+                        )}
+                    >
                         Admin
                     </span>
                 </div>
             </div>
             {showSubtitle && (
-                <span className="text-[11px] text-ink-3 font-medium mt-2">
+                <span
+                    className={classNames(
+                        'text-[11px] font-medium mt-2',
+                        isLight ? 'text-white/70' : 'text-ink-3',
+                    )}
+                >
                     Central Management System
                 </span>
             )}

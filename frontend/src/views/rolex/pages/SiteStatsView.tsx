@@ -10,6 +10,7 @@ import {
     Row,
     Col,
     Statistic,
+    Input,
 } from 'antd'
 import {
     ReloadOutlined,
@@ -19,19 +20,32 @@ import toast from '@/components/ui/toast'
 import Notification from '@/components/ui/Notification'
 import { apiGetSiteStats } from '@/services/StatementsService'
 import type { SiteStatRow } from '@/@types/statement'
+import dayjs from 'dayjs'
 
 const { Title, Text } = Typography
 
 const SiteStatsView = () => {
     const [stats, setStats] = useState<SiteStatRow[]>([])
     const [loading, setLoading] = useState<boolean>(true)
-    const [startDate, setStartDate] = useState<string>('2026-10-08')
-    const [endDate, setEndDate] = useState<string>('2026-10-15')
+    // Default to the last 7 days, today included
+    const [startDate, setStartDate] = useState<string>(dayjs().subtract(6, 'day').format('YYYY-MM-DD'))
+    const [endDate, setEndDate] = useState<string>(dayjs().format('YYYY-MM-DD'))
 
     const fetchStats = async () => {
+        if (startDate && endDate && startDate > endDate) {
+            toast.push(
+                <Notification title="Invalid date range" type="warning">
+                    Start date must be on or before the end date.
+                </Notification>
+            )
+            return
+        }
         setLoading(true)
         try {
-            const data = await apiGetSiteStats()
+            const data = await apiGetSiteStats({
+                start_date: startDate || undefined,
+                end_date: endDate || undefined,
+            })
             setStats(data)
         } catch (err: any) {
             console.error('Failed to load stats', err)
@@ -145,11 +159,11 @@ const SiteStatsView = () => {
                         <label className="block text-xs font-semibold text-ink-2 uppercase tracking-wider mb-1">
                             Start Date
                         </label>
-                        <input
+                        <Input
                             type="date"
                             value={startDate}
                             onChange={(e) => setStartDate(e.target.value)}
-                            className="px-2.5 py-1.5 bg-surface border border-line-strong rounded text-xs"
+                            className="w-full min-w-[150px]"
                         />
                     </div>
 
@@ -157,11 +171,11 @@ const SiteStatsView = () => {
                         <label className="block text-xs font-semibold text-ink-2 uppercase tracking-wider mb-1">
                             End Date
                         </label>
-                        <input
+                        <Input
                             type="date"
                             value={endDate}
                             onChange={(e) => setEndDate(e.target.value)}
-                            className="px-2.5 py-1.5 bg-surface border border-line-strong rounded text-xs"
+                            className="w-full min-w-[150px]"
                         />
                     </div>
 
@@ -169,6 +183,7 @@ const SiteStatsView = () => {
                         type="primary"
                         icon={<SearchOutlined />}
                         onClick={fetchStats}
+                        loading={loading}
                     >
                         Search
                     </Button>

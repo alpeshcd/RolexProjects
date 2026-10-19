@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
     Card,
@@ -11,16 +11,21 @@ import {
     Typography,
     Row,
     Col,
+    Image,
 } from 'antd'
 import {
     ArrowLeftOutlined,
     CheckOutlined,
     BankOutlined,
     UploadOutlined,
+    DeleteOutlined,
 } from '@ant-design/icons'
 import toast from '@/components/ui/toast'
 import Notification from '@/components/ui/Notification'
-import { apiCreateAccount } from '@/services/BankAccountsService'
+import { apiCreateAccount, apiUploadQrImage } from '@/services/BankAccountsService'
+
+const QR_ACCEPT = 'image/png,image/jpeg,image/webp,image/gif'
+const QR_MAX_BYTES = 2 * 1024 * 1024
 
 const { Title, Text } = Typography
 
@@ -40,6 +45,44 @@ const AddAccountView = () => {
     const [maxDepositAmount, setMaxDepositAmount] = useState<string>('Both')
     const [status, setStatus] = useState<string>('Active')
     const [submitting, setSubmitting] = useState<boolean>(false)
+    const [qrFile, setQrFile] = useState<File | null>(null)
+    const [qrPreview, setQrPreview] = useState<string>('')
+
+    // Free the preview URL when it changes or the page closes
+    useEffect(() => {
+        return () => {
+            if (qrPreview) URL.revokeObjectURL(qrPreview)
+        }
+    }, [qrPreview])
+
+    const handleQrChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        e.target.value = ''
+        if (!file) return
+        if (!QR_ACCEPT.split(',').includes(file.type)) {
+            toast.push(
+                <Notification type="warning" title="Unsupported file">
+                    Choose a PNG, JPG, WEBP or GIF image.
+                </Notification>
+            )
+            return
+        }
+        if (file.size > QR_MAX_BYTES) {
+            toast.push(
+                <Notification type="warning" title="File too large">
+                    QR image must be 2 MB or smaller.
+                </Notification>
+            )
+            return
+        }
+        setQrFile(file)
+        setQrPreview(URL.createObjectURL(file))
+    }
+
+    const clearQr = () => {
+        setQrFile(null)
+        setQrPreview('')
+    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -54,6 +97,8 @@ const AddAccountView = () => {
 
         setSubmitting(true)
         try {
+            const qrCodeUrl = qrFile ? (await apiUploadQrImage(qrFile)).url : undefined
+
             await apiCreateAccount({
                 user: 'MASTAN99M',
                 name: name.trim(),
@@ -68,6 +113,7 @@ const AddAccountView = () => {
                 max_amount: parseFloat(maxAmount) || 20000,
                 max_deposit: maxDepositAmount,
                 status: status,
+                qr_code_url: qrCodeUrl,
             })
 
             toast.push(
@@ -284,14 +330,55 @@ const AddAccountView = () => {
                             <label className="block text-xs font-semibold text-ink-2 uppercase tracking-wider mb-1">
                                 QR Code Image (Optional)
                             </label>
-                            <div className="border border-dashed border-line-strong rounded-lg p-2 flex items-center gap-2">
-                                <UploadOutlined className="text-primary" />
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    className="text-xs text-ink-3"
-                                />
-                            </div>
+                            {qrFile && qrPreview ? (
+                                <div className="flex items-center gap-3 rounded-lg border border-line bg-surface-2 p-2.5">
+                                    <Image
+                                        src={qrPreview}
+                                        alt="QR code preview"
+                                        width={72}
+                                        height={72}
+                                        className="rounded-md border border-line bg-white object-contain"
+                                        preview={{ mask: 'View' }}
+                                    />
+                                    <div className="min-w-0 flex-1">
+                                        <div className="truncate text-[13px] font-medium text-ink">
+                                            {qrFile.name}
+                                        </div>
+                                        <div className="mt-0.5 text-[11px] text-ink-3">
+                                            {Math.max(1, Math.round(qrFile.size / 1024))} KB · Click the image to enlarge
+                                        </div>
+                                    </div>
+                                    <Button
+                                        type="text"
+                                        danger
+                                        size="small"
+                                        icon={<DeleteOutlined />}
+                                        onClick={clearQr}
+                                    >
+                                        Remove
+                                    </Button>
+                                </div>
+                            ) : (
+                                <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-dashed border-line-strong px-3 py-2.5 transition-colors hover:border-primary hover:bg-primary-subtle">
+                                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-subtle text-primary">
+                                        <UploadOutlined />
+                                    </span>
+                                    <span className="min-w-0">
+                                        <span className="block text-[13px] font-medium text-ink">
+                                            Upload QR image
+                                        </span>
+                                        <span className="block text-[11px] text-ink-3">
+                                            PNG, JPG, WEBP or GIF · up to 2 MB
+                                        </span>
+                                    </span>
+                                    <input
+                                        type="file"
+                                        accept={QR_ACCEPT}
+                                        className="hidden"
+                                        onChange={handleQrChange}
+                                    />
+                                </label>
+                            )}
                         </Col>
 
                         <Col xs={24} sm={12}>

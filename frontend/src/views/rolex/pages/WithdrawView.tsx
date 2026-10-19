@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
     Card,
     Tabs,
@@ -42,10 +42,17 @@ import { MdAccountBalance, MdPayments } from 'react-icons/md'
 
 type TabType = 'pending' | 'history'
 
+// Each tab has its own URL so the sidebar highlights the matching menu item
+const TAB_PATHS: Record<TabType, string> = {
+    pending: '/withdraw',
+    history: '/withdrawals/history',
+}
+
 const { Title, Text } = Typography
 
 const WithdrawView = () => {
     const location = useLocation()
+    const navigate = useNavigate()
 
     // Determine initial active tab based on route pathname
     const getInitialTab = (): TabType => {
@@ -96,10 +103,10 @@ const WithdrawView = () => {
     const [newBankName, setNewBankName] = useState<string>('')
     const [isCreating, setIsCreating] = useState<boolean>(false)
 
-    // Sync tab when URL changes
+    // Sync tab when URL changes, including sidebar clicks on the route we're already on
     useEffect(() => {
         setActiveTab(getInitialTab())
-    }, [location.pathname])
+    }, [location.pathname, location.key])
 
     // Fetch withdrawals from FastAPI
     const fetchWithdrawals = async () => {
@@ -303,8 +310,20 @@ const WithdrawView = () => {
             if (!(w.utr_number || '').toLowerCase().includes(histUtrFilter.toLowerCase().trim()))
                 return false
         }
+        if (startDate || endDate) {
+            // API dates are ISO strings ("YYYY-MM-DDTHH:mm:ss"); compare the day part, end day inclusive
+            const day = (w.date || '').slice(0, 10)
+            if (!day) return false
+            if (startDate && day < startDate) return false
+            if (endDate && day > endDate) return false
+        }
         return true
     })
+
+    // Domain options come from the data so they always match stored values
+    const historyDomainOptions = Array.from(
+        new Set(withdrawals.map((w) => w.domain).filter((d): d is string => Boolean(d))),
+    ).sort()
 
     // KPI Calculations
     const approvedVolume = withdrawals
@@ -413,7 +432,7 @@ const WithdrawView = () => {
             {/* Ant Design Sub-Navigation Tabs */}
             <Tabs
                 activeKey={activeTab}
-                onChange={(key) => setActiveTab(key as TabType)}
+                onChange={(key) => navigate(TAB_PATHS[key as TabType])}
                 items={[
                     {
                         key: 'pending',
@@ -618,14 +637,14 @@ const WithdrawView = () => {
                                                         </Button>
                                                     )}
                                                 </td>
-                                                <td className="py-2.5 px-3 text-[11px] text-ink-3">{item.date_str || '-'}</td>
-                                                <td className="py-2.5 px-3 text-[11px] text-success font-medium">
+                                                <td className="py-2.5 px-3 text-[11px] text-ink-3 whitespace-nowrap">{item.date_str || '-'}</td>
+                                                <td className="py-2.5 px-3 text-[11px] text-success font-medium whitespace-nowrap">
                                                     {item.approved_at_str || '-'}
                                                 </td>
-                                                <td className="py-2.5 px-3 text-[11px] text-error font-medium">
+                                                <td className="py-2.5 px-3 text-[11px] text-error font-medium whitespace-nowrap">
                                                     {item.rejected_at_str || '-'}
                                                 </td>
-                                                <td className="py-2.5 px-3 text-[11px] text-ink-3">
+                                                <td className="py-2.5 px-3 text-[11px] text-ink-3 whitespace-nowrap">
                                                     {item.canceled_at_str || '-'}
                                                 </td>
                                             </tr>
@@ -655,10 +674,7 @@ const WithdrawView = () => {
                                     options={[
                                         { label: 'Select domain', value: 'Select domain' },
                                         { label: 'All Domains', value: 'All' },
-                                        { label: 'mastan247.com', value: 'mastan247.com' },
-                                        { label: 'mastan365.com', value: 'mastan365.com' },
-                                        { label: 'mastan99.com', value: 'mastan99.com' },
-                                        { label: 'mastanreddy.com', value: 'mastanreddy.com' },
+                                        ...historyDomainOptions.map((d) => ({ label: d, value: d })),
                                     ]}
                                 />
                             </div>
@@ -676,6 +692,7 @@ const WithdrawView = () => {
                                         { label: 'All Statuses', value: 'All' },
                                         { label: 'Approved', value: 'Approved' },
                                         { label: 'Rejected', value: 'Rejected' },
+                                        { label: 'Canceled', value: 'Canceled' },
                                         { label: 'Pending', value: 'Pending' },
                                     ]}
                                 />
@@ -726,25 +743,25 @@ const WithdrawView = () => {
                         <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-line">
                             <div className="flex items-center gap-3">
                                 <div>
-                                    <label className="block text-[11px] font-semibold text-ink-3 uppercase tracking-wider mb-1">
+                                    <label className="block text-xs font-semibold text-ink-2 uppercase tracking-wider mb-1">
                                         Start Date
                                     </label>
-                                    <input
+                                    <Input
                                         type="date"
                                         value={startDate}
                                         onChange={(e) => setStartDate(e.target.value)}
-                                        className="px-2.5 py-1.5 bg-surface border border-line-strong rounded text-xs"
+                                        className="w-full min-w-[150px]"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-[11px] font-semibold text-ink-3 uppercase tracking-wider mb-1">
+                                    <label className="block text-xs font-semibold text-ink-2 uppercase tracking-wider mb-1">
                                         End Date
                                     </label>
-                                    <input
+                                    <Input
                                         type="date"
                                         value={endDate}
                                         onChange={(e) => setEndDate(e.target.value)}
-                                        className="px-2.5 py-1.5 bg-surface border border-line-strong rounded text-xs"
+                                        className="w-full min-w-[150px]"
                                     />
                                 </div>
                             </div>
@@ -868,11 +885,11 @@ const WithdrawView = () => {
                                                         Details
                                                     </Button>
                                                 </td>
-                                                <td className="py-2.5 px-3 text-[11px] text-ink-3">{item.date_str || '-'}</td>
-                                                <td className="py-2.5 px-3 text-[11px] text-success font-medium">
+                                                <td className="py-2.5 px-3 text-[11px] text-ink-3 whitespace-nowrap">{item.date_str || '-'}</td>
+                                                <td className="py-2.5 px-3 text-[11px] text-success font-medium whitespace-nowrap">
                                                     {item.approved_at_str || '-'}
                                                 </td>
-                                                <td className="py-2.5 px-3 text-[11px] text-error font-medium">
+                                                <td className="py-2.5 px-3 text-[11px] text-error font-medium whitespace-nowrap">
                                                     {item.rejected_at_str || '-'}
                                                 </td>
                                             </tr>

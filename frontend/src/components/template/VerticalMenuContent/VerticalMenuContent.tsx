@@ -43,11 +43,11 @@ const VerticalMenuContent = (props: VerticalMenuContentProps) => {
 
     const { activedRoute } = useMenuActive(navigationTree, routeKey)
 
+    // Open the group that holds the current page whenever the page changes
     useEffect(() => {
-        if (defaulExpandKey.length === 0 && activedRoute?.parentKey) {
-            setDefaulExpandKey([activedRoute?.parentKey])
+        if (activedRoute?.parentKey) {
+            setDefaulExpandKey([activedRoute.parentKey])
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activedRoute?.parentKey])
 
     const handleLinkClick = () => {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
     Card,
@@ -35,7 +35,7 @@ import {
     apiCreateUTR,
     apiRemoveUTR,
 } from '@/services/DepositsService'
-import { apiGetActiveAccounts } from '@/services/BankAccountsService'
+import { apiGetActiveAccounts, apiGetAccounts } from '@/services/BankAccountsService'
 import type { Deposit, UTREntry } from '@/@types/deposit'
 import type { BankAccount } from '@/@types/account'
 import {
@@ -58,6 +58,15 @@ import { MdAccountBalance, MdCheckCircle, MdCancel, MdReceiptLong } from 'react-
 
 type TabType = 'pending' | 'history' | 'utr-entry' | 'utr-pending' | 'utr-removed'
 
+// Each tab has its own URL so the sidebar highlights the matching menu item
+const TAB_PATHS: Record<TabType, string> = {
+    pending: '/deposit',
+    history: '/deposits/history',
+    'utr-entry': '/deposits/utr-entry',
+    'utr-pending': '/deposits/utr-pending',
+    'utr-removed': '/deposits/utr-entry/removed-list',
+}
+
 const { Title, Text } = Typography
 
 const DepositView = () => {
@@ -77,12 +86,23 @@ const DepositView = () => {
 
     const [activeTab, setActiveTab] = useState<TabType>(getInitialTab())
 
+    // Re-sync the tab with the URL, including sidebar clicks on the route we're already on
+    useEffect(() => {
+        setActiveTab(getInitialTab())
+    }, [location.pathname, location.key])
+
     // Deposits state
     const [deposits, setDeposits] = useState<Deposit[]>([])
     const [loadingDeposits, setLoadingDeposits] = useState<boolean>(true)
 
     // Active Bank/UPI Accounts for dropdown
     const [accounts, setAccounts] = useState<BankAccount[]>([])
+    // All accounts (incl. inactive) for the Account filter, so older deposits stay filterable
+    const [filterAccounts, setFilterAccounts] = useState<BankAccount[]>([])
+
+    // Only the latest request may update a list, so fast tab switches can't show stale rows
+    const depositsRequestId = useRef(0)
+    const utrsRequestId = useRef(0)
 
     // Quick UTR Box state (Screenshot 1 top row)
     const [quickUtr, setQuickUtr] = useState<string>('')
@@ -135,57 +155,73 @@ const DepositView = () => {
             } catch (e) {
                 // Ignore
             }
+            try {
+                setFilterAccounts(await apiGetAccounts())
+            } catch {
+                // Filter falls back to "All Accounts" only
+            }
         }
         loadAccounts()
     }, [])
 
     // Load deposits based on active tab
     const fetchDepositsList = async (statusParam?: string) => {
+        const requestId = ++depositsRequestId.current
         setLoadingDeposits(true)
         try {
+            const isPending = activeTab === 'pending'
             const data = await apiGetDeposits({
                 status: statusParam,
-                username: activeTab === 'pending' ? pendingUserFilter : histUserFilter || undefined,
-                utr_number: activeTab === 'pending' ? pendingUtrFilter : histUtrFilter || undefined,
-                domain: activeTab === 'history' ? histDomainFilter || undefined : undefined,
-                type: activeTab === 'pending' ? (pendingTypeFilter !== 'All' ? pendingTypeFilter : undefined) : histTypeFilter || undefined,
+                username: (isPending ? pendingUserFilter : histUserFilter).trim() || undefined,
+                utr_number: (isPending ? pendingUtrFilter : histUtrFilter).trim() || undefined,
+                domain: !isPending ? histDomainFilter || undefined : undefined,
+                type: isPending ? (pendingTypeFilter !== 'All' ? pendingTypeFilter : undefined) : histTypeFilter || undefined,
+                account_id: isPending && pendingAccountFilter ? Number(pendingAccountFilter) : undefined,
+                start_date: !isPending ? histStartDate || undefined : undefined,
+                end_date: !isPending ? histEndDate || undefined : undefined,
             })
+            if (requestId !== depositsRequestId.current) return
             setDeposits(data)
         } catch (err) {
+            if (requestId !== depositsRequestId.current) return
             toast.push(
                 <Notification type="danger" title="Error">
                     Failed to fetch deposits
                 </Notification>
             )
         } finally {
-            setLoadingDeposits(false)
+            if (requestId === depositsRequestId.current) setLoadingDeposits(false)
         }
     }
 
     // Load UTRs
     const fetchUtrsList = async (status: string, search?: string) => {
+        const requestId = ++utrsRequestId.current
+        setUtrs([])
         setLoadingUtrs(true)
         try {
             const data = await apiGetUTRs({
                 status: status,
                 utr_number: search || undefined,
             })
+            if (requestId !== utrsRequestId.current) return
             setUtrs(data)
         } catch (err) {
+            if (requestId !== utrsRequestId.current) return
             toast.push(
                 <Notification type="danger" title="Error">
                     Failed to load UTR list
                 </Notification>
             )
         } finally {
-            setLoadingUtrs(false)
+            if (requestId === utrsRequestId.current) setLoadingUtrs(false)
         }
     }
 
-    // Effect on tab change
-    useEffect(() => {
+    // Reload the current tab with the filters currently selected on it
+    const reloadCurrentTab = () => {
         if (activeTab === 'pending') {
-            fetchDepositsList('Pending')
+            fetchDepositsList(pendingStatusFilter !== 'All' ? pendingStatusFilter : undefined)
         } else if (activeTab === 'history') {
             fetchDepositsList(histStatusFilter || undefined)
         } else if (activeTab === 'utr-pending') {
@@ -193,6 +229,11 @@ const DepositView = () => {
         } else if (activeTab === 'utr-removed') {
             fetchUtrsList('REMOVED', removedUtrSearch)
         }
+    }
+
+    // Effect on tab change
+    useEffect(() => {
+        reloadCurrentTab()
     }, [activeTab])
 
     // Quick UTR Submit (Screenshot 1 top row)
@@ -223,7 +264,7 @@ const DepositView = () => {
 
             setQuickUtr('')
             setQuickAmount('')
-            fetchDepositsList('Pending')
+            reloadCurrentTab()
         } catch (err: any) {
             toast.push(
                 <Notification type="danger" title="Submission Failed">
@@ -245,8 +286,8 @@ const DepositView = () => {
                     ₹{dep.amount.toLocaleString()} credited to <strong>{dep.username}</strong>!
                 </Notification>
             )
-            // If in pending tab, remove from view
-            if (activeTab === 'pending') {
+            // If the pending tab is showing only Pending deposits, remove it from view
+            if (activeTab === 'pending' && pendingStatusFilter === 'Pending') {
                 setDeposits((prev) => prev.filter((d) => d.id !== dep.id))
             }
         } catch (err) {
@@ -268,7 +309,7 @@ const DepositView = () => {
                     Deposit #{dep.deposit_id} of ₹{dep.amount.toLocaleString()} marked Rejected.
                 </Notification>
             )
-            if (activeTab === 'pending') {
+            if (activeTab === 'pending' && pendingStatusFilter === 'Pending') {
                 setDeposits((prev) => prev.filter((d) => d.id !== dep.id))
             }
         } catch (err) {
@@ -308,7 +349,7 @@ const DepositView = () => {
 
             setNewUtrNumber('')
             setNewUtrAmount('')
-            setActiveTab('utr-pending')
+            navigate(TAB_PATHS['utr-pending'])
         } catch (err: any) {
             toast.push(
                 <Notification type="danger" title="Error">
@@ -377,13 +418,7 @@ const DepositView = () => {
                 <Space wrap>
                     <Button
                         icon={<ReloadOutlined />}
-                        onClick={() => {
-                            if (activeTab === 'pending' || activeTab === 'history') {
-                                fetchDepositsList(activeTab === 'pending' ? 'Pending' : undefined)
-                            } else {
-                                fetchUtrsList(activeTab === 'utr-pending' ? 'PENDING' : 'REMOVED')
-                            }
-                        }}
+                        onClick={reloadCurrentTab}
                     >
                         Refresh
                     </Button>
@@ -393,7 +428,7 @@ const DepositView = () => {
             {/* Ant Design Sub-Navigation Tabs */}
             <Tabs
                 activeKey={activeTab}
-                onChange={(key) => setActiveTab(key as TabType)}
+                onChange={(key) => navigate(TAB_PATHS[key as TabType])}
                 items={[
                     {
                         key: 'pending',
@@ -430,8 +465,8 @@ const DepositView = () => {
                         >
                             <form onSubmit={handleQuickSubmit} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
                                 <div className="md:col-span-4">
-                                    <label className="block text-[11px] font-bold text-ink-2 uppercase tracking-wider mb-1">
-                                        UTR Number:
+                                    <label className="block text-xs font-semibold text-ink-2 uppercase tracking-wider mb-1">
+                                        UTR Number
                                     </label>
                                     <Input
                                         placeholder="Enter UTR number"
@@ -442,8 +477,8 @@ const DepositView = () => {
                                 </div>
 
                                 <div className="md:col-span-4">
-                                    <label className="block text-[11px] font-bold text-ink-2 uppercase tracking-wider mb-1">
-                                        Account:
+                                    <label className="block text-xs font-semibold text-ink-2 uppercase tracking-wider mb-1">
+                                        Account
                                     </label>
                                     <Select
                                         value={quickAccount || undefined}
@@ -458,8 +493,8 @@ const DepositView = () => {
                                 </div>
 
                                 <div className="md:col-span-2">
-                                    <label className="block text-[11px] font-bold text-ink-2 uppercase tracking-wider mb-1">
-                                        Amount:
+                                    <label className="block text-xs font-semibold text-ink-2 uppercase tracking-wider mb-1">
+                                        Amount
                                     </label>
                                     <Input
                                         type="number"
@@ -496,8 +531,8 @@ const DepositView = () => {
                                 className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 items-end"
                             >
                                 <div>
-                                    <label className="block text-[11px] font-bold text-ink-2 uppercase tracking-wider mb-1">
-                                        UTR Number:
+                                    <label className="block text-xs font-semibold text-ink-2 uppercase tracking-wider mb-1">
+                                        UTR Number
                                     </label>
                                     <Input
                                         placeholder="Filter by UTR"
@@ -507,8 +542,8 @@ const DepositView = () => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-[11px] font-bold text-ink-2 uppercase tracking-wider mb-1">
-                                        Username:
+                                    <label className="block text-xs font-semibold text-ink-2 uppercase tracking-wider mb-1">
+                                        Username
                                     </label>
                                     <Input
                                         placeholder="Filter by username"
@@ -518,8 +553,8 @@ const DepositView = () => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-[11px] font-bold text-ink-2 uppercase tracking-wider mb-1">
-                                        Account:
+                                    <label className="block text-xs font-semibold text-ink-2 uppercase tracking-wider mb-1">
+                                        Account
                                     </label>
                                     <Select
                                         value={pendingAccountFilter || undefined}
@@ -529,14 +564,17 @@ const DepositView = () => {
                                         allowClear
                                         options={[
                                             { value: '', label: 'All Accounts' },
-                                            ...accounts.map((a) => ({ value: a.name, label: a.name })),
+                                            ...filterAccounts.map((a) => ({
+                                                value: String(a.id),
+                                                label: `${a.name} · ${a.account_number}`,
+                                            })),
                                         ]}
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-[11px] font-bold text-ink-2 uppercase tracking-wider mb-1">
-                                        Status:
+                                    <label className="block text-xs font-semibold text-ink-2 uppercase tracking-wider mb-1">
+                                        Status
                                     </label>
                                     <Select
                                         value={pendingStatusFilter}
@@ -552,8 +590,8 @@ const DepositView = () => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-[11px] font-bold text-ink-2 uppercase tracking-wider mb-1">
-                                        Type:
+                                    <label className="block text-xs font-semibold text-ink-2 uppercase tracking-wider mb-1">
+                                        Type
                                     </label>
                                     <Select
                                         value={pendingTypeFilter}
@@ -693,8 +731,8 @@ const DepositView = () => {
                             >
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
                                     <div>
-                                        <label className="block text-[11px] font-bold text-ink-2 uppercase tracking-wider mb-1">
-                                            Domain:
+                                        <label className="block text-xs font-semibold text-ink-2 uppercase tracking-wider mb-1">
+                                            Domain
                                         </label>
                                         <Select
                                             value={histDomainFilter || undefined}
@@ -713,8 +751,8 @@ const DepositView = () => {
                                     </div>
 
                                     <div>
-                                        <label className="block text-[11px] font-bold text-ink-2 uppercase tracking-wider mb-1">
-                                            Status:
+                                        <label className="block text-xs font-semibold text-ink-2 uppercase tracking-wider mb-1">
+                                            Status
                                         </label>
                                         <Select
                                             value={histStatusFilter || undefined}
@@ -732,8 +770,8 @@ const DepositView = () => {
                                     </div>
 
                                     <div>
-                                        <label className="block text-[11px] font-bold text-ink-2 uppercase tracking-wider mb-1">
-                                            Type:
+                                        <label className="block text-xs font-semibold text-ink-2 uppercase tracking-wider mb-1">
+                                            Type
                                         </label>
                                         <Select
                                             value={histTypeFilter || undefined}
@@ -750,8 +788,8 @@ const DepositView = () => {
                                     </div>
 
                                     <div>
-                                        <label className="block text-[11px] font-bold text-ink-2 uppercase tracking-wider mb-1">
-                                            Username:
+                                        <label className="block text-xs font-semibold text-ink-2 uppercase tracking-wider mb-1">
+                                            Username
                                         </label>
                                         <Input
                                             placeholder="Enter username"
@@ -761,8 +799,8 @@ const DepositView = () => {
                                     </div>
 
                                     <div>
-                                        <label className="block text-[11px] font-bold text-ink-2 uppercase tracking-wider mb-1">
-                                            UTR Number:
+                                        <label className="block text-xs font-semibold text-ink-2 uppercase tracking-wider mb-1">
+                                            UTR Number
                                         </label>
                                         <Input
                                             placeholder="Enter UTR number"
@@ -774,8 +812,8 @@ const DepositView = () => {
 
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
                                     <div>
-                                        <label className="block text-[11px] font-bold text-ink-2 uppercase tracking-wider mb-1">
-                                            Start Date:
+                                        <label className="block text-xs font-semibold text-ink-2 uppercase tracking-wider mb-1">
+                                            Start Date
                                         </label>
                                         <Input
                                             type="date"
@@ -785,8 +823,8 @@ const DepositView = () => {
                                     </div>
 
                                     <div>
-                                        <label className="block text-[11px] font-bold text-ink-2 uppercase tracking-wider mb-1">
-                                            End Date:
+                                        <label className="block text-xs font-semibold text-ink-2 uppercase tracking-wider mb-1">
+                                            End Date
                                         </label>
                                         <Input
                                             type="date"
@@ -902,18 +940,23 @@ const DepositView = () => {
                             size="small"
                             className="border-line"
                             title={
-                                <div>
-                                    <span className="text-sm font-semibold block">UTR Verification Entry</span>
-                                    <Text type="secondary" className="text-xs font-normal">
-                                        Pre-register banking payment receipts for instant matching
-                                    </Text>
+                                <div className="flex items-center gap-3 py-3">
+                                    <span className="icon-chip h-9 w-9 shrink-0">
+                                        <MdReceiptLong className="text-lg" />
+                                    </span>
+                                    <div className="min-w-0">
+                                        <span className="block text-sm font-semibold text-ink">UTR Verification Entry</span>
+                                        <Text type="secondary" className="text-xs font-normal">
+                                            Pre-register banking payment receipts for instant matching
+                                        </Text>
+                                    </div>
                                 </div>
                             }
                         >
                             <form onSubmit={handleUtrEntrySubmit} className="space-y-4 py-2">
                                 <div>
                                     <label className="block text-xs font-semibold text-ink-2 uppercase tracking-wider mb-1.5">
-                                        UTR Number: *
+                                        UTR Number *
                                     </label>
                                     <Input
                                         required
@@ -927,7 +970,7 @@ const DepositView = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-xs font-semibold text-ink-2 uppercase tracking-wider mb-1.5">
-                                            Account: *
+                                            Account *
                                         </label>
                                         <Select
                                             value={newUtrAccount || undefined}
@@ -942,7 +985,7 @@ const DepositView = () => {
 
                                     <div>
                                         <label className="block text-xs font-semibold text-ink-2 uppercase tracking-wider mb-1.5">
-                                            Amount (₹): *
+                                            Amount (₹) *
                                         </label>
                                         <Input
                                             type="number"
@@ -982,7 +1025,7 @@ const DepositView = () => {
                                 type="primary"
                                 size="small"
                                 icon={<PlusOutlined />}
-                                onClick={() => setActiveTab('utr-entry')}
+                                onClick={() => navigate(TAB_PATHS['utr-entry'])}
                             >
                                 Add UTR
                             </Button>
@@ -1068,8 +1111,8 @@ const DepositView = () => {
                                 className="flex flex-col sm:flex-row items-end gap-3 max-w-lg"
                             >
                                 <div className="flex-1 w-full">
-                                    <label className="block text-[11px] font-bold text-ink-2 uppercase tracking-wider mb-1">
-                                        UTR Number:
+                                    <label className="block text-xs font-semibold text-ink-2 uppercase tracking-wider mb-1">
+                                        UTR Number
                                     </label>
                                     <Input
                                         placeholder="Enter UTR Number"
@@ -1106,7 +1149,13 @@ const DepositView = () => {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-line text-xs">
-                                        {utrs.length === 0 ? (
+                                        {loadingUtrs ? (
+                                            <tr>
+                                                <td colSpan={7} className="py-10 text-center text-ink-3 font-medium">
+                                                    Loading removed UTRs...
+                                                </td>
+                                            </tr>
+                                        ) : utrs.length === 0 ? (
                                             <tr>
                                                 <td colSpan={7} className="py-10 text-center text-ink-3 font-medium">
                                                     No Removed UTR Records Found
@@ -1121,7 +1170,7 @@ const DepositView = () => {
                                                     <td className="py-2 px-3 text-ink-2">{u.master}</td>
                                                     <td className="py-2 px-3 font-mono text-ink">{u.utr_number}</td>
                                                     <td className="py-2 px-3 text-right font-bold text-ink">₹{u.amount.toFixed(2)}</td>
-                                                    <td className="py-2 px-3 text-ink-3 text-[11px]">{u.date_str || '—'}</td>
+                                                    <td className="py-2 px-3 text-ink-3 text-[11px] whitespace-nowrap">{u.date_str || '—'}</td>
                                                 </tr>
                                             ))
                                         )}

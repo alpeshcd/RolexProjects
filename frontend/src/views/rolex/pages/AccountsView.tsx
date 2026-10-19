@@ -26,6 +26,7 @@ import toast from '@/components/ui/toast'
 import Notification from '@/components/ui/Notification'
 import {
     apiGetAccounts,
+    apiGetAccountUsers,
     apiUpdateAccount,
 } from '@/services/BankAccountsService'
 import type { BankAccount } from '@/@types/account'
@@ -44,8 +45,9 @@ const AccountsView = () => {
     const [userFilter, setUserFilter] = useState<string>('')
     const [nameFilter, setNameFilter] = useState<string>('')
     const [accountNumberFilter, setAccountNumberFilter] = useState<string>('')
-    const [amountRangeFilter, setAmountRangeFilter] = useState<string>('Both')
+    const [amountRangeFilter, setAmountRangeFilter] = useState<string>('All')
     const [statusFilter, setStatusFilter] = useState<string>('All')
+    const [userOptions, setUserOptions] = useState<string[]>([])
 
     // QR Modal State
     const [qrAccount, setQrAccount] = useState<BankAccount | null>(null)
@@ -59,6 +61,7 @@ const AccountsView = () => {
                 user: userFilter || undefined,
                 name: nameFilter.trim() || undefined,
                 account_number: accountNumberFilter.trim() || undefined,
+                amount_upto: amountRangeFilter !== 'All' ? amountRangeFilter : undefined,
                 status: statusFilter !== 'All' ? statusFilter : undefined,
             }
             const data = await apiGetAccounts(params)
@@ -76,6 +79,9 @@ const AccountsView = () => {
 
     useEffect(() => {
         fetchAccounts()
+        apiGetAccountUsers()
+            .then(setUserOptions)
+            .catch(() => setUserOptions([]))
     }, [])
 
     // Search submit
@@ -224,7 +230,7 @@ const AccountsView = () => {
                             className="w-full"
                             options={[
                                 { label: 'All Users', value: '' },
-                                { label: 'MASTAN99M', value: 'MASTAN99M' },
+                                ...userOptions.map((u) => ({ label: u, value: u })),
                             ]}
                         />
                     </div>
@@ -237,6 +243,7 @@ const AccountsView = () => {
                             placeholder="Enter name"
                             value={nameFilter}
                             onChange={(e) => setNameFilter(e.target.value)}
+                            onPressEnter={() => handleSearch()}
                             allowClear
                         />
                     </div>
@@ -249,6 +256,7 @@ const AccountsView = () => {
                             placeholder="Enter number"
                             value={accountNumberFilter}
                             onChange={(e) => setAccountNumberFilter(e.target.value)}
+                            onPressEnter={() => handleSearch()}
                             allowClear
                         />
                     </div>
@@ -262,7 +270,7 @@ const AccountsView = () => {
                             onChange={(val) => setAmountRangeFilter(val)}
                             className="w-full"
                             options={[
-                                { label: 'Both', value: 'Both' },
+                                { label: 'All', value: 'All' },
                                 { label: 'Up to 10,000', value: '10000' },
                                 { label: 'Up to 20,000', value: '20000' },
                                 { label: 'Up to 40,000', value: '40000' },
@@ -423,7 +431,7 @@ const AccountsView = () => {
                 </div>
 
                 <div className="px-4 py-2.5 bg-surface-2 border-t border-line flex items-center justify-between text-xs text-ink-3">
-                    <span>Showing <strong>1</strong> to <strong>{accounts.length}</strong> entries</span>
+                    <span>Showing <strong>{accounts.length ? 1 : 0}</strong> to <strong>{accounts.length}</strong> entries</span>
                     <span className="font-medium text-ink-3">Rolex Payment Gateway Management</span>
                 </div>
             </Card>
@@ -455,14 +463,21 @@ const AccountsView = () => {
             >
                 {qrAccount && (
                     <div className="py-3 text-center space-y-3">
-                        <div className="bg-surface p-3 border border-line rounded-lg inline-block mx-auto">
+                        <div className="bg-white p-3 border border-line rounded-lg inline-block mx-auto">
+                            {/* Prefer the QR image uploaded for this account; otherwise generate one from the UPI ID */}
                             <img
-                                src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pa=${encodeURIComponent(
-                                    qrAccount.account_number
-                                )}&pn=${encodeURIComponent(qrAccount.name)}&cu=INR`}
+                                src={
+                                    qrAccount.qr_code_url ||
+                                    `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pa=${encodeURIComponent(
+                                        qrAccount.account_number
+                                    )}&pn=${encodeURIComponent(qrAccount.name)}&cu=INR`
+                                }
                                 alt="UPI QR Code"
-                                className="w-44 h-44 mx-auto"
+                                className="w-44 h-44 mx-auto object-contain"
                             />
+                        </div>
+                        <div className="text-[11px] text-ink-3">
+                            {qrAccount.qr_code_url ? 'Uploaded QR image' : 'Generated from the UPI ID'}
                         </div>
 
                         <div className="space-y-1">

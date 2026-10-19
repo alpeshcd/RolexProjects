@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, date, time, timedelta
 
 from app.core.database import get_db
 from app.models.deposit import Deposit, UTREntry
@@ -91,6 +91,9 @@ def get_deposits(
     username: Optional[str] = Query(None),
     utr_number: Optional[str] = Query(None),
     type: Optional[str] = Query(None),
+    account_id: Optional[int] = Query(None),
+    start_date: Optional[date] = Query(None, description="On or after this day (YYYY-MM-DD)"),
+    end_date: Optional[date] = Query(None, description="Up to and including this day (YYYY-MM-DD)"),
     db: Session = Depends(get_db)
 ):
     seed_deposits_if_empty(db)
@@ -110,6 +113,15 @@ def get_deposits(
 
     if type and type.strip() and type.lower() not in ["all", "select type"]:
         query = query.filter(Deposit.type.ilike(type.strip()))
+
+    if account_id is not None:
+        query = query.filter(Deposit.account_id == account_id)
+
+    if start_date:
+        query = query.filter(Deposit.date >= datetime.combine(start_date, time.min))
+
+    if end_date:
+        query = query.filter(Deposit.date < datetime.combine(end_date + timedelta(days=1), time.min))
 
     deposits = query.order_by(Deposit.id.desc()).all()
 

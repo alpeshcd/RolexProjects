@@ -103,7 +103,7 @@ const ToastWrapper = forwardRef((props: ToastWrapperProps, ref: any) => {
 
     const {
         transitionType = 'scale',
-        placement = PLACEMENT.TOP_END as NotificationPlacement,
+        placement = PLACEMENT.TOP_CENTER as NotificationPlacement,
         offsetX = 30,
         offsetY = 30,
         messageKey,

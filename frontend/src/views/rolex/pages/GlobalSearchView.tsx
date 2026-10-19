@@ -66,6 +66,7 @@ const GlobalSearchView = () => {
 
     // Load initial portal stats
     const fetchPortals = async () => {
+        setLoadingPortals(true)
         try {
             const data = await apiGetPortals()
             setPortals(data)
@@ -113,7 +114,8 @@ const GlobalSearchView = () => {
         setHasSearched(true)
         try {
             const results = await apiSearchClients({
-                domain: domainToUse || undefined,
+                // 'all' tells the backend this is a real search across every domain
+                domain: domainToUse || 'all',
                 username: usernameInput.trim() || undefined,
             })
             setSearchResults(results)
@@ -383,6 +385,7 @@ const GlobalSearchView = () => {
                             placeholder="Enter username"
                             value={usernameInput}
                             onChange={(e) => setUsernameInput(e.target.value)}
+                            onPressEnter={() => handleSearch()}
                             allowClear
                         />
                     </div>

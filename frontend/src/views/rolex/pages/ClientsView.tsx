@@ -60,6 +60,8 @@ const ClientsView = () => {
                 username: usernameFilter.trim() || undefined,
                 source: selectedSource || undefined,
                 deposit_count: depositCountFilter ? parseInt(depositCountFilter, 10) : undefined,
+                start_date: startDate || undefined,
+                end_date: endDate || undefined,
             }
             const data = await apiGetUsers(params)
             setClients(data)
@@ -215,7 +217,7 @@ const ClientsView = () => {
                                 { label: 'All Domains', value: '' },
                                 ...portals.map((p) => ({
                                     label: p.domain_title,
-                                    value: p.domain_title,
+                                    value: p.domain_url,
                                 })),
                             ]}
                         />
@@ -235,26 +237,26 @@ const ClientsView = () => {
                     </div>
 
                     <div>
-                        <label className="block text-[11px] font-semibold text-ink-3 uppercase tracking-wider mb-1">
+                        <label className="block text-xs font-semibold text-ink-2 uppercase tracking-wider mb-1">
                             Start Date
                         </label>
-                        <input
+                        <Input
                             type="date"
                             value={startDate}
                             onChange={(e) => setStartDate(e.target.value)}
-                            className="w-full px-2 py-1 bg-surface border border-line-strong rounded text-xs"
+                            className="w-full min-w-[150px]"
                         />
                     </div>
 
                     <div>
-                        <label className="block text-[11px] font-semibold text-ink-3 uppercase tracking-wider mb-1">
+                        <label className="block text-xs font-semibold text-ink-2 uppercase tracking-wider mb-1">
                             End Date
                         </label>
-                        <input
+                        <Input
                             type="date"
                             value={endDate}
                             onChange={(e) => setEndDate(e.target.value)}
-                            className="w-full px-2 py-1 bg-surface border border-line-strong rounded text-xs"
+                            className="w-full min-w-[150px]"
                         />
                     </div>
 
@@ -269,8 +271,7 @@ const ClientsView = () => {
                             options={[
                                 { label: 'All Sources', value: '' },
                                 { label: 'Signup', value: 'Signup' },
-                                { label: 'Admin', value: 'Admin' },
-                                { label: 'Referral', value: 'Referral' },
+                                { label: 'Manual', value: 'Manual' },
                             ]}
                         />
                     </div>
@@ -284,6 +285,7 @@ const ClientsView = () => {
                             placeholder="e.g. 5"
                             value={depositCountFilter}
                             onChange={(e) => setDepositCountFilter(e.target.value)}
+                            onPressEnter={() => handleSearch()}
                             allowClear
                         />
                     </div>
@@ -368,7 +370,7 @@ const ClientsView = () => {
                                         </td>
                                         <td className="py-2.5 px-3 text-center">
                                             <Tag color={client.source === 'Signup' ? 'blue' : 'default'}>
-                                                {client.source || 'Admin'}
+                                                {client.source || 'Manual'}
                                             </Tag>
                                         </td>
                                         <td className="py-2.5 px-3 text-center">

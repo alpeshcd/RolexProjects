@@ -87,11 +87,12 @@ const ExtraUsersView = () => {
     const [newRole, setNewRole] = useState<OperatorRole>('Settlement Manager')
     const [newPortals, setNewPortals] = useState('All Portals')
 
+    const query = searchTerm.trim().toLowerCase()
     const filteredUsers = users.filter(
         (u) =>
-            u.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            u.role.toLowerCase().includes(searchTerm.toLowerCase())
+            u.username.toLowerCase().includes(query) ||
+            u.name.toLowerCase().includes(query) ||
+            u.role.toLowerCase().includes(query)
     )
 
     const handleToggleStatus = async (user: ExtraUser) => {

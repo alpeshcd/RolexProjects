@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, date, time, timedelta
 
 from app.core.database import get_db
 from app.core.security import get_password_hash
@@ -73,6 +73,8 @@ def get_users(
     username: Optional[str] = Query(None),
     source: Optional[str] = Query(None),
     deposit_count: Optional[int] = Query(None),
+    start_date: Optional[date] = Query(None, description="Created on or after this day (YYYY-MM-DD)"),
+    end_date: Optional[date] = Query(None, description="Created on or before this day (YYYY-MM-DD), inclusive"),
     db: Session = Depends(get_db)
 ):
     seed_clients_if_needed(db)
@@ -92,6 +94,12 @@ def get_users(
 
     if deposit_count is not None:
         query = query.filter(User.deposit_count == deposit_count)
+
+    if start_date:
+        query = query.filter(User.created_at >= datetime.combine(start_date, time.min))
+
+    if end_date:
+        query = query.filter(User.created_at < datetime.combine(end_date + timedelta(days=1), time.min))
 
     # Order so latest client_id / created_at is first
     users = query.order_by(User.client_id.desc().nullslast(), User.id.desc()).all()

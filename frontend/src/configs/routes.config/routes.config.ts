@@ -3,6 +3,11 @@ import authRoute from './authRoute'
 import othersRoute from './othersRoute'
 import type { Routes } from '@/@types/routes'
 
+// One component per module, shared by all of its routes, so switching tabs (which changes
+// the URL) keeps the page mounted instead of reloading it
+const DepositPage = lazy(() => import('@/views/rolex/pages').then(m => ({ default: m.DepositView })))
+const WithdrawPage = lazy(() => import('@/views/rolex/pages').then(m => ({ default: m.WithdrawView })))
+
 export const publicRoutes: Routes = [
     ...authRoute,
 ]
@@ -27,7 +32,7 @@ export const protectedRoutes: Routes = [
         authority: [],
     },
     {
-        key: 'rolex.clients',
+        key: 'rolex.clients.list',
         path: '/clients',
         component: lazy(() => import('@/views/rolex/pages').then(m => ({ default: m.ClientsView }))),
         authority: [],
@@ -39,79 +44,79 @@ export const protectedRoutes: Routes = [
         authority: [],
     },
     {
-        key: 'rolex.accounts',
+        key: 'rolex.accounts.list',
         path: '/accounts',
         component: lazy(() => import('@/views/rolex/pages').then(m => ({ default: m.AccountsView }))),
         authority: [],
     },
     {
-        key: 'rolex.accounts.create',
+        key: 'rolex.accounts.add',
         path: '/accounts/create',
         component: lazy(() => import('@/views/rolex/pages').then(m => ({ default: m.AddAccountView }))),
         authority: [],
     },
     {
-        key: 'rolex.deposit',
+        key: 'rolex.deposit.list',
         path: '/deposit',
-        component: lazy(() => import('@/views/rolex/pages').then(m => ({ default: m.DepositView }))),
+        component: DepositPage,
         authority: [],
     },
     {
-        key: 'rolex.deposit.deposits',
+        key: 'rolex.deposit.list',
         path: '/deposits',
-        component: lazy(() => import('@/views/rolex/pages').then(m => ({ default: m.DepositView }))),
+        component: DepositPage,
         authority: [],
     },
     {
         key: 'rolex.deposit.history',
         path: '/deposits/history',
-        component: lazy(() => import('@/views/rolex/pages').then(m => ({ default: m.DepositView }))),
+        component: DepositPage,
         authority: [],
     },
     {
         key: 'rolex.deposit.utrEntry',
         path: '/deposits/utr-entry',
-        component: lazy(() => import('@/views/rolex/pages').then(m => ({ default: m.DepositView }))),
+        component: DepositPage,
         authority: [],
     },
     {
         key: 'rolex.deposit.utrPending',
         path: '/deposits/utr-pending',
-        component: lazy(() => import('@/views/rolex/pages').then(m => ({ default: m.DepositView }))),
+        component: DepositPage,
         authority: [],
     },
     {
         key: 'rolex.deposit.utrRemoved',
         path: '/deposits/utr-entry/removed-list',
-        component: lazy(() => import('@/views/rolex/pages').then(m => ({ default: m.DepositView }))),
+        component: DepositPage,
         authority: [],
     },
     {
-        key: 'rolex.withdraw',
+        key: 'rolex.withdraw.list',
         path: '/withdraw',
-        component: lazy(() => import('@/views/rolex/pages').then(m => ({ default: m.WithdrawView }))),
+        component: WithdrawPage,
         authority: [],
     },
     {
-        key: 'rolex.withdraw.withdrawals',
+        key: 'rolex.withdraw.list',
         path: '/withdrawals',
-        component: lazy(() => import('@/views/rolex/pages').then(m => ({ default: m.WithdrawView }))),
+        component: WithdrawPage,
         authority: [],
     },
     {
         key: 'rolex.withdraw.history',
         path: '/withdrawals/history',
-        component: lazy(() => import('@/views/rolex/pages').then(m => ({ default: m.WithdrawView }))),
+        component: WithdrawPage,
         authority: [],
     },
     {
-        key: 'rolex.withdraw.historyAlt',
+        key: 'rolex.withdraw.history',
         path: '/withdraw/history',
-        component: lazy(() => import('@/views/rolex/pages').then(m => ({ default: m.WithdrawView }))),
+        component: WithdrawPage,
         authority: [],
     },
     {
-        key: 'rolex.extraUsers',
+        key: 'rolex.extraUsers.manage',
         path: '/extra-users',
         component: lazy(() => import('@/views/rolex/pages').then(m => ({ default: m.ExtraUsersView }))),
         authority: [],
@@ -123,7 +128,7 @@ export const protectedRoutes: Routes = [
         authority: [],
     },
     {
-        key: 'rolex.statement.alt',
+        key: 'rolex.statement',
         path: '/account-statement',
         component: lazy(() => import('@/views/rolex/pages').then(m => ({ default: m.StatementView }))),
         authority: [],
@@ -135,7 +140,7 @@ export const protectedRoutes: Routes = [
         authority: [],
     },
     {
-        key: 'rolex.siteStats.alt',
+        key: 'rolex.siteStats',
         path: '/users/site-user-stats',
         component: lazy(() => import('@/views/rolex/pages').then(m => ({ default: m.SiteStatsView }))),
         authority: [],
