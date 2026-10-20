@@ -225,7 +225,7 @@ Thanks
 
 ## 6. Humara next step (API aane ke baad)
 
-1. `backend/app/services/exchange_client.py` me endpoints implement karna
+1. `backend/app/services/exchange/` me `mock_feed.py` ki jagah real Mastan feed (`MarketFeed`) implement karna — panel (`mastan-portal/`) abhi mock data par chal raha hai
 2. Odds ke liye WebSocket connection ya background polling worker set karna
 3. Rolex frontend me In-Play sports tabs ko live feed se jodna
 4. Chip deposit/withdraw ko existing Deposit/Withdraw module se connect karna

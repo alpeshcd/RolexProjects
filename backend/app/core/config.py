@@ -15,6 +15,14 @@ class Settings(BaseSettings):
     # Set DEMO_OTP_CODE="" in production so only real authenticator codes work.
     DEMO_OTP_CODE: str = os.getenv("DEMO_OTP_CODE", "123456")
 
+    # Market data source for the Mastan master panel. "mock" serves generated
+    # fixtures and odds until the client shares the real exchange API.
+    EXCHANGE_PROVIDER: str = os.getenv("EXCHANGE_PROVIDER", "mock")
+
+    # Password given to the auto-created top account of each domain portal, for
+    # local testing only. Change it from the panel (or set this) before going live.
+    EXCHANGE_DEMO_PASSWORD: str = os.getenv("EXCHANGE_DEMO_PASSWORD", "master123")
+
     # Database
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./rolex.db")
 

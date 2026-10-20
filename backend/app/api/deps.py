@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.security import decode_token
+from app.models.exchange import ExchangeAccount
 from app.models.user import User
 
 # Client (player) accounts live in the users table too, but must never
@@ -40,3 +41,29 @@ def get_current_user(
             detail="Invalid or expired authentication token"
         )
     return user
+
+
+# Mastan master-panel sessions use their own token type, so a panel login
+# can't reach the Rolex admin API and a Rolex login can't reach the panel.
+EXCHANGE_TOKEN_TYPE = "exchange"
+
+
+def get_exchange_account(
+    authorization: Optional[str] = Header(None),
+    db: Session = Depends(get_db),
+) -> ExchangeAccount:
+    payload = None
+    if authorization and authorization.startswith("Bearer "):
+        payload = decode_token(authorization.split(" ", 1)[1])
+    if not payload or payload.get("type") != EXCHANGE_TOKEN_TYPE:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated"
+        )
+    account = db.query(ExchangeAccount).filter(ExchangeAccount.username == payload.get("sub")).first()
+    if not account or not account.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired authentication token"
+        )
+    return account
