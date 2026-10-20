@@ -54,7 +54,7 @@ const Verify2FA = () => {
     }
 
     return (
-        <div className="w-full max-w-[420px] mx-auto">
+        <div className="w-full max-w-[420px] mx-auto px-4 py-12 sm:py-16">
             {/* Logo on small screens; the brand panel shows it on desktop */}
             <div className="mb-10 flex justify-center lg:hidden">
                 <RolexLogo />
