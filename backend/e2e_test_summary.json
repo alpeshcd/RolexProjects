@@ -1,0 +1,58 @@
+{
+  "admin_auth": "PASSED",
+  "client_creation": {
+    "status": "PASSED",
+    "username": "CLI_E2E_31914",
+    "client_id": 2619784,
+    "balance": 10000.0,
+    "domain": "mastan365.com"
+  },
+  "account_creation": {
+    "status": "Active",
+    "account_id": 22,
+    "name": "TEST VIP PAYMENT HUB",
+    "account_number": "PAY_UPI_31915@icici"
+  },
+  "deposit_flow": {
+    "status": "PASSED",
+    "deposit_id": 92631915,
+    "amount": 15000.0,
+    "utr": "UTR_E2E_631915",
+    "balance_after": 25000.0,
+    "ledger_verified": true
+  },
+  "manual_balance": {
+    "status": "PASSED",
+    "added": 5000.0,
+    "new_balance": 30000.0,
+    "ledger_verified": true
+  },
+  "withdrawal_flow": {
+    "status": "PASSED",
+    "withdrawal_id": 92631915,
+    "amount": 8000.0,
+    "utr": "PAYOUT_UTR_631915",
+    "balance_after": 22000.0,
+    "ledger_verified": true
+  },
+  "mastan_panel": {
+    "status": "PASSED",
+    "panel_user": "MASTAN365M",
+    "chips_transferred": 2000.0,
+    "final_client_balance": 24000.0,
+    "cross_portal_ledger_verified": true
+  },
+  "portal_isolation": "PASSED",
+  "ledger_audit": {
+    "status": "PASSED",
+    "entries_count": 4,
+    "initial_balance": 10000.0,
+    "final_balance": 24000.0
+  },
+  "ip_and_feed": {
+    "status": "PASSED",
+    "sports_count": 13,
+    "events_count": 36,
+    "fallback_operational": true
+  }
+}

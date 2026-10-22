@@ -15,9 +15,20 @@ class Settings(BaseSettings):
     # Set DEMO_OTP_CODE="" in production so only real authenticator codes work.
     DEMO_OTP_CODE: str = os.getenv("DEMO_OTP_CODE", "123456")
 
-    # Market data source for the Mastan master panel. "mock" serves generated
-    # fixtures and odds until the client shares the real exchange API.
+    # Market data source for the Mastan master panel.
+    # "mock"   – generated fixtures/odds (default, works offline)
+    # "mastan" – real Mastan exchange API (requires EXCHANGE_API_KEY + EXCHANGE_API_URL)
     EXCHANGE_PROVIDER: str = os.getenv("EXCHANGE_PROVIDER", "mock")
+
+    # Real Mastan exchange API credentials (only needed when EXCHANGE_PROVIDER=mastan)
+    EXCHANGE_API_URL: str = os.getenv("EXCHANGE_API_URL", "")
+    EXCHANGE_API_KEY: str = os.getenv("EXCHANGE_API_KEY", "")
+
+    # Betfair API credentials (only needed when EXCHANGE_PROVIDER=betfair)
+    BETFAIR_USERNAME: str = os.getenv("BETFAIR_USERNAME", "")
+    BETFAIR_PASSWORD: str = os.getenv("BETFAIR_PASSWORD", "")
+    BETFAIR_APP_KEY: str = os.getenv("BETFAIR_APP_KEY", "")
+    BETFAIR_PROXY: str = os.getenv("BETFAIR_PROXY", "")
 
     # Password given to the auto-created top account of each domain portal, for
     # local testing only. Change it from the panel (or set this) before going live.

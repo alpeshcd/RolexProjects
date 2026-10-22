@@ -48,6 +48,12 @@ def get_feed() -> MarketFeed:
         if settings.EXCHANGE_PROVIDER == "mock":
             from app.services.exchange.mock_feed import MockFeed
             _feed = MockFeed()
+        elif settings.EXCHANGE_PROVIDER == "mastan":
+            from app.services.exchange.mastan_feed import MastanFeed
+            _feed = MastanFeed()
+        elif settings.EXCHANGE_PROVIDER == "betfair":
+            from app.services.exchange.betfair_feed import BetfairFeed
+            _feed = BetfairFeed()
         else:
             raise RuntimeError(f"Unknown EXCHANGE_PROVIDER '{settings.EXCHANGE_PROVIDER}'")
     return _feed
