@@ -1,21 +1,19 @@
 import { useCallback, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import BetSlip from '../components/BetSlip'
-import DemoNote from '../components/DemoNote'
 import { usePageTitle } from '../components/Layout'
-import { Bookmaker, MatchOdds, type SlipPreview } from '../components/markets'
+import { Bookmaker, FancyMarkets, MatchOdds, type SlipPreview } from '../components/markets'
 import Scoreboard from '../components/Scoreboard'
 import { api } from '../lib/api'
 import { fmtAmount, fmtEventDate } from '../lib/format'
 import { usePolling } from '../lib/usePolling'
-import type { Bet, Selection } from '../types'
+import type { Bet, BookmakerMarket, Selection } from '../types'
 
 const MARKET_REFRESH_MS = 1000
 
 function OpenBets({ bets }: { bets: Bet[] }) {
     return (
-        <div className="side-box">
-            <div className="side-head">My Bets ({bets.length})</div>
+        <div className="open-bets-container">
             {bets.length ? (
                 <table className="mini-table">
                     <thead>
@@ -39,7 +37,7 @@ function OpenBets({ bets }: { bets: Bet[] }) {
                     </tbody>
                 </table>
             ) : (
-                <div className="side-empty">No open bets on this match</div>
+                <div className="side-empty-panel">No open bets on this match</div>
             )}
         </div>
     )
@@ -51,6 +49,8 @@ export default function EventPage() {
     const { data: bets, reload: reloadBets } = usePolling(() => api.bets({ status: 'open', event_id: eventId }), 5000, eventId)
     const [selection, setSelection] = useState<Selection | null>(null)
     const [amounts, setAmounts] = useState<{ win: number; lose: number } | null>(null)
+    const [sideTab, setSideTab] = useState<'place' | 'mybets'>('place')
+
     usePageTitle(event?.name ?? 'Match')
 
     const onSlipChange = useCallback((a: { win: number; lose: number } | null) => setAmounts(a), [])
@@ -63,6 +63,11 @@ export default function EventPage() {
         reload()
         reloadBets()
     }, [closeSlip, reload, reloadBets])
+
+    const handlePick = useCallback((sel: Selection) => {
+        setSelection(sel)
+        setSideTab('place')
+    }, [])
 
     if (!event) {
         return error ? (
@@ -78,56 +83,148 @@ export default function EventPage() {
     const preview: SlipPreview | null =
         selection && amounts ? { marketId: selection.marketId, runner: selection.runner, ...amounts } : null
 
-    const slipFor = (marketId: string) =>
-        selection?.marketId === marketId
-            ? {
-                  slipRunner: selection.runner,
-                  slip: (
-                      <BetSlip
-                          key={`${selection.marketId}|${selection.runner}|${selection.side}|${selection.rate}`}
-                          eventId={event.event_id}
-                          selection={selection}
-                          inplay={event.inplay}
-                          onChange={onSlipChange}
-                          onCancel={closeSlip}
-                          onPlaced={onPlaced}
-                      />
-                  ),
-              }
-            : { slipRunner: null, slip: null }
+    // Mini Bookmaker market derived or separate for display matching screenshot 4
+    const miniBookmaker: BookmakerMarket | null = bookmaker
+        ? {
+              ...bookmaker,
+              id: `${bookmaker.id}-mini`,
+              name: 'MINI BOOKMAKER',
+              min: 100,
+              max: 200000,
+          }
+        : null
 
-    const common = { canBet: event.betting_open, onPick: setSelection, preview }
+    const common = { canBet: event.betting_open, onPick: handlePick, preview }
+
+    const openBetsCount = bets?.length ?? 0
 
     return (
-        <div className="event-page">
-            <div className="event-bar">
-                <span className="event-bar-name">{event.name}</span>
-                <span className="event-bar-date">
+        <div className="event-page-container">
+            {/* Top Match Header Bar matching Screenshot 3 & 4 */}
+            <div className="event-top-banner">
+                <span className="event-banner-title">{event.name.toUpperCase()}</span>
+                <span className="event-banner-time">
                     {event.inplay && <span className="live-dot" title="In play" />}
                     {fmtEventDate(event.open_date)}
                 </span>
             </div>
-            {event.source === 'mock' && <DemoNote />}
-            {!event.betting_open && <div className="error-box">Betting is paused: live odds are not available right now.</div>}
-            {error && <div className="stale-note">Live update failed: {error}. Showing the last prices.</div>}
-            <div className="event-layout">
-                <div className="event-main">
+
+            {!event.betting_open && (
+                <div className="warning-banner">Betting is paused: live odds are temporarily unavailable.</div>
+            )}
+
+            <div className="event-two-column-layout">
+                {/* Left Main Column: Scoreboard + All Markets */}
+                <div className="event-main-column">
                     <Scoreboard event={event} />
+
+                    {/* Match Odds */}
                     {match_odds && (
-                        <MatchOdds market={match_odds} positions={event.positions[match_odds.id]} {...common} {...slipFor(match_odds.id)} />
+                        <MatchOdds
+                            market={match_odds}
+                            positions={event.positions[match_odds.id]}
+                            {...common}
+                        />
                     )}
+
+                    {/* Main Bookmaker */}
                     {bookmaker && (
-                        <Bookmaker market={bookmaker} positions={event.positions[bookmaker.id]} {...common} {...slipFor(bookmaker.id)} />
+                        <Bookmaker
+                            market={bookmaker}
+                            positions={event.positions[bookmaker.id]}
+                            {...common}
+                        />
                     )}
-                    {fancy.length > 0 && <div className="coming-soon">Fancy / Session markets: coming soon</div>}
-                    {!match_odds && !bookmaker && (
-                        <div className="empty-panel">No markets are open for this match right now.</div>
+
+                    {/* Mini Bookmaker */}
+                    {miniBookmaker && (
+                        <Bookmaker
+                            market={miniBookmaker}
+                            positions={event.positions[miniBookmaker.id]}
+                            isMini={true}
+                            {...common}
+                        />
                     )}
+
+                    {/* Fancy / Session Markets */}
+                    <FancyMarkets
+                        fancy={fancy as any}
+                        canBet={event.betting_open}
+                        onPick={handlePick}
+                    />
                 </div>
-                <div className="event-side">
-                    <OpenBets bets={bets ?? []} />
+
+                {/* Right Side Column: Place Bet / My Bet Tabbed Container matching Screenshot 4 */}
+                <div className="event-side-column">
+                    <div className="betslip-box-card">
+                        <div className="betslip-header-tabs">
+                            <button
+                                type="button"
+                                className={`betslip-tab-btn ${sideTab === 'place' ? 'active' : ''}`}
+                                onClick={() => setSideTab('place')}
+                            >
+                                Place Bet
+                            </button>
+                            <button
+                                type="button"
+                                className={`betslip-tab-btn ${sideTab === 'mybets' ? 'active' : ''}`}
+                                onClick={() => setSideTab('mybets')}
+                            >
+                                My Bet {openBetsCount > 0 ? `(${openBetsCount})` : ''}
+                            </button>
+                        </div>
+
+                        <div className="betslip-card-body">
+                            {sideTab === 'place' ? (
+                                selection ? (
+                                    <BetSlip
+                                        key={`${selection.marketId}|${selection.runner}|${selection.side}|${selection.rate}`}
+                                        eventId={event.event_id}
+                                        selection={selection}
+                                        inplay={event.inplay}
+                                        onChange={onSlipChange}
+                                        onCancel={closeSlip}
+                                        onPlaced={onPlaced}
+                                    />
+                                ) : (
+                                    <div className="betslip-empty-hint">
+                                        <div className="hint-icon">🎯</div>
+                                        <div className="hint-text">Click on any Back or Lay odds to place your bet.</div>
+                                    </div>
+                                )
+                            ) : (
+                                <OpenBets bets={bets ?? []} />
+                            )}
+                        </div>
+                    </div>
                 </div>
             </div>
+
+            {/* Mobile Bottom Bet Slip Sheet (Active on screens < 768px when an odds button is tapped) */}
+            {selection && (
+                <div className="mobile-betslip-overlay" onClick={closeSlip}>
+                    <div className="mobile-betslip-drawer" onClick={(e) => e.stopPropagation()}>
+                        <div className={`mobile-betslip-top-bar ${selection.side}`}>
+                            <span className="mobile-betslip-tag">{selection.side.toUpperCase()}</span>
+                            <span className="mobile-betslip-runner-name">{selection.runner}</span>
+                            <button type="button" className="mobile-betslip-close-btn" onClick={closeSlip} aria-label="Close">
+                                ✕
+                            </button>
+                        </div>
+                        <div className="mobile-betslip-body">
+                            <BetSlip
+                                key={`m-${selection.marketId}|${selection.runner}|${selection.side}|${selection.rate}`}
+                                eventId={event.event_id}
+                                selection={selection}
+                                inplay={event.inplay}
+                                onChange={onSlipChange}
+                                onCancel={closeSlip}
+                                onPlaced={onPlaced}
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

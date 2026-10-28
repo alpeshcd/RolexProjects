@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from app.api.deps import get_current_user
-from app.api.v1.endpoints import auth, users, dashboard, global_search, accounts, deposits, withdrawals, statements, exchange, exchange_downline, exchange_bets, player
+from app.api.v1.endpoints import auth, users, dashboard, global_search, accounts, deposits, withdrawals, statements, exchange, exchange_downline, exchange_bets, player, casino
 
 api_router = APIRouter()
 
@@ -23,5 +23,10 @@ api_router.include_router(exchange_bets.router, prefix="/exchange", tags=["Masta
 
 # Player site. Signs in clients (see get_player).
 api_router.include_router(player.router, prefix="/player", tags=["Player Site"])
+
+# Live Casino endpoints (tables, launch session, webhooks)
+api_router.include_router(casino.router, prefix="/player/casino", tags=["Casino"])
+api_router.include_router(casino.router, prefix="/exchange/casino", tags=["Casino"])
+
 
 

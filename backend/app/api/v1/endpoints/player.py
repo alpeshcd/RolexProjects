@@ -11,7 +11,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.api.deps import CLIENT_ROLE, PLAYER_TOKEN_TYPE, get_player
+from app.api.deps import CLIENT_ROLE, PLAYER_TOKEN_TYPE, get_player, get_player_optional
 from app.api.v1.endpoints.exchange import portal_info
 from app.core.config import settings
 from app.core.database import get_db
@@ -113,7 +113,7 @@ def change_password(req: PlayerPasswordChange, user: User = Depends(get_player),
 # ---- Markets ------------------------------------------------------------
 
 @router.get("/sports")
-def sports(user: User = Depends(get_player)):
+def sports(user: Optional[User] = Depends(get_player_optional)):
     return get_feed().sports()
 
 
@@ -121,18 +121,22 @@ def sports(user: User = Depends(get_player)):
 def events(
     sport_id: Optional[int] = Query(None),
     inplay: bool = Query(False, description="Only events in play"),
-    user: User = Depends(get_player),
+    user: Optional[User] = Depends(get_player_optional),
 ):
     return get_feed().events(sport_id=sport_id, inplay_only=inplay)
 
 
 @router.get("/events/{event_id}")
-def event(event_id: int, user: User = Depends(get_player), db: Session = Depends(get_db)):
+def event(
+    event_id: int,
+    user: Optional[User] = Depends(get_player_optional),
+    db: Session = Depends(get_db),
+):
     detail = get_feed().event(event_id)
     if not detail:
         raise HTTPException(status_code=404, detail="Event not found or already closed")
     # The player's profit/loss on each runner, shown under the runner names
-    detail["positions"] = event_positions(db, user, event_id)
+    detail["positions"] = event_positions(db, user, event_id) if user else {}
     detail["betting_open"] = not is_demo(detail) or settings.PLAYER_ALLOW_DEMO_ODDS
     return detail
 

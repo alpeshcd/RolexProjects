@@ -28,7 +28,7 @@ interface Props {
 }
 
 export default function BetSlip({ eventId, selection, inplay, onChange, onCancel, onPlaced }: Props) {
-    const { setAccount } = useAuth()
+    const { setAccount, account } = useAuth()
     const toast = useToast()
     const [rate, setRate] = useState(selection.rate)
     const [stake, setStake] = useState('')
@@ -50,6 +50,10 @@ export default function BetSlip({ eventId, selection, inplay, onChange, onCancel
 
     const submit = async (e: FormEvent) => {
         e.preventDefault()
+        if (!account) {
+            setError('Please login to your account to place bets.')
+            return
+        }
         if (stakeNum < selection.min || stakeNum > selection.max) {
             setError(`Stake must be between ${fmtAmount(selection.min)} and ${fmtAmount(selection.max)}`)
             return

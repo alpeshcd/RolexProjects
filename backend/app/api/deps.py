@@ -92,3 +92,19 @@ def get_player(
             detail="Invalid or expired authentication token"
         )
     return user
+
+
+def get_player_optional(
+    authorization: Optional[str] = Header(None),
+    db: Session = Depends(get_db),
+) -> Optional[User]:
+    if not authorization or not authorization.startswith("Bearer "):
+        return None
+    try:
+        payload = decode_token(authorization.split(" ", 1)[1])
+        if not payload or payload.get("type") != PLAYER_TOKEN_TYPE:
+            return None
+        return db.query(User).filter(User.username == payload.get("sub"), User.role == CLIENT_ROLE, User.is_active == True).first()
+    except Exception:
+        return None
+

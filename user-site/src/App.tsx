@@ -3,6 +3,7 @@ import { BrowserRouter, Link, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider, useAuth } from './auth/AuthContext'
 import Layout from './components/Layout'
 import ChangePassword from './pages/ChangePassword'
+import Casino from './pages/Casino'
 import EventPage from './pages/EventPage'
 import Home from './pages/Home'
 import Login from './pages/Login'
@@ -29,21 +30,44 @@ export default function App() {
         <AuthProvider>
             <BrowserRouter>
                 <Routes>
+                    {/* Standalone Login Page */}
                     <Route path="/login" element={<Login />} />
-                    <Route
-                        element={
-                            <RequireAuth>
-                                <Layout />
-                            </RequireAuth>
-                        }
-                    >
+
+                    {/* Main Layout containing Public & Authenticated Pages */}
+                    <Route element={<Layout />}>
                         <Route index element={<Navigate to="/home" replace />} />
+                        {/* Publicly Accessible Live Odds & Matches */}
                         <Route path="/home" element={<Home />} />
                         <Route path="/sport/:sportId" element={<Home />} />
                         <Route path="/event/:eventId" element={<EventPage />} />
-                        <Route path="/bets" element={<MyBets />} />
-                        <Route path="/statement" element={<Statement />} />
-                        <Route path="/change-password" element={<ChangePassword />} />
+                        <Route path="/casino" element={<Casino />} />
+
+                        {/* Protected Account Pages */}
+                        <Route
+                            path="/bets"
+                            element={
+                                <RequireAuth>
+                                    <MyBets />
+                                </RequireAuth>
+                            }
+                        />
+                        <Route
+                            path="/statement"
+                            element={
+                                <RequireAuth>
+                                    <Statement />
+                                </RequireAuth>
+                            }
+                        />
+                        <Route
+                            path="/change-password"
+                            element={
+                                <RequireAuth>
+                                    <ChangePassword />
+                                </RequireAuth>
+                            }
+                        />
+
                         <Route path="*" element={<NotFound />} />
                     </Route>
                 </Routes>
