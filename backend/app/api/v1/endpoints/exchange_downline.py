@@ -33,6 +33,7 @@ from app.services.exchange.accounts import (
     subtree,
     username_taken,
 )
+from app.services.exchange.betting import exposures, user_exposure
 
 router = APIRouter()
 
@@ -60,7 +61,7 @@ def account_row(db: Session, a: ExchangeAccount, parent: Optional[str]) -> Downl
     )
 
 
-def client_row(u: User) -> DownlineRow:
+def client_row(u: User, exposure: float = 0.0) -> DownlineRow:
     balance = round(u.balance or 0.0, 2)
     return DownlineRow(
         kind="client",
@@ -72,8 +73,8 @@ def client_row(u: User) -> DownlineRow:
         parent=u.master,
         credit_reference=0.0,
         balance=balance,
-        exposure=0.0,
-        available=balance,
+        exposure=exposure,
+        available=round(balance - exposure, 2),
         pl=0.0,
         partnership=0.0,
         is_active=u.is_active,
@@ -101,7 +102,7 @@ def find_target(db: Session, account: ExchangeAccount, kind: Kind, target_id: in
 
 def row_for(db: Session, kind: Kind, target: Union[ExchangeAccount, User]) -> DownlineRow:
     if kind == "client":
-        return client_row(target)
+        return client_row(target, user_exposure(db, target))
     parent = db.query(ExchangeAccount).filter(ExchangeAccount.id == target.parent_id).first()
     return account_row(db, target, parent.username if parent else None)
 
@@ -126,7 +127,9 @@ def list_downline(
         accounts = [a for a in below if not a.is_active]
         clients = [c for c in clients_below(db, portal, account, below) if not c.is_active]
 
-    return [account_row(db, a, names.get(a.parent_id)) for a in accounts] + [client_row(c) for c in clients]
+    held = exposures(db, [c.id for c in clients])
+    return ([account_row(db, a, names.get(a.parent_id)) for a in accounts]
+            + [client_row(c, held.get(c.id, 0.0)) for c in clients])
 
 
 @router.post("/downline", response_model=DownlineRow, status_code=status.HTTP_201_CREATED)
@@ -209,11 +212,13 @@ def transfer_chips(
     amount = round(req.amount, 2)
     mine = get_balance(db, account)
     theirs = get_balance(db, target) if kind == "account" else (target.balance or 0.0)
+    # A client's open bets hold part of their balance as exposure
+    free = theirs - (user_exposure(db, target) if kind == "client" else 0.0)
 
     if deposit and mine < amount:
         raise HTTPException(status_code=400, detail=f"Insufficient balance (Available: {mine:,.2f})")
-    if not deposit and theirs < amount:
-        raise HTTPException(status_code=400, detail=f"{target.username} has only {theirs:,.2f} available")
+    if not deposit and free < amount:
+        raise HTTPException(status_code=400, detail=f"{target.username} has only {free:,.2f} available")
 
     mine, theirs = (mine - amount, theirs + amount) if deposit else (mine + amount, theirs - amount)
     set_balance(db, account, mine)

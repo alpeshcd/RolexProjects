@@ -930,6 +930,23 @@ input {
     flex: 1;
 }
 
+.toolbar select {
+    height: 34px;
+    padding: 0 8px;
+    border: 1px solid #bbb;
+    border-radius: 2px;
+    background: #fff;
+}
+
+.data-table .toolbar {
+    margin: 0;
+}
+
+.panel-title {
+    margin: 0 0 10px;
+    font-size: 15px;
+}
+
 .search,
 .inline-field input {
     height: 34px;
@@ -999,6 +1016,19 @@ input {
 
 .nowrap {
     white-space: nowrap;
+}
+
+.cap {
+    text-transform: capitalize;
+}
+
+/* Bets: a back/lay stripe on the first cell */
+.data-table tr.row-back td:first-child {
+    box-shadow: inset 4px 0 0 var(--back);
+}
+
+.data-table tr.row-lay td:first-child {
+    box-shadow: inset 4px 0 0 var(--lay);
 }
 
 .sub {

@@ -67,3 +67,28 @@ def get_exchange_account(
             detail="Invalid or expired authentication token"
         )
     return account
+
+
+# Player-site sessions: clients only, and their token can't reach the panel or Rolex.
+PLAYER_TOKEN_TYPE = "player"
+
+
+def get_player(
+    authorization: Optional[str] = Header(None),
+    db: Session = Depends(get_db),
+) -> User:
+    payload = None
+    if authorization and authorization.startswith("Bearer "):
+        payload = decode_token(authorization.split(" ", 1)[1])
+    if not payload or payload.get("type") != PLAYER_TOKEN_TYPE:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated"
+        )
+    user = db.query(User).filter(User.username == payload.get("sub"), User.role == CLIENT_ROLE).first()
+    if not user or not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired authentication token"
+        )
+    return user

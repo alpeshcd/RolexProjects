@@ -296,6 +296,7 @@ class BetfairFeed(MarketFeed):
                     },
                     "exposure": 0,
                     "odds": [None, None, None],
+                    "source": "betfair",
                 })
 
             # Limit events to top 50 to keep response fast
@@ -439,6 +440,7 @@ class BetfairFeed(MarketFeed):
                 },
                 "exposure": 0,
                 "odds": [None, None, None],
+                "source": "betfair",
                 "score": None,
                 "markets": {
                     "match_odds": None,
@@ -529,10 +531,6 @@ class BetfairFeed(MarketFeed):
         except Exception:
             logger.warning("Betfair event %s unavailable or geo-restricted; falling back to mock event.", event_id)
             return self._mock.event(event_id)
-
-    def bets(self, domain_key: str, event_id: Optional[int] = None) -> list[dict]:
-        """Returns bets — uses mock feed bets to give active exchange transactions."""
-        return self._mock.bets(domain_key, event_id)
 
     def news(self, brand_name: str) -> list[str]:
         """Returns news ticker strings."""

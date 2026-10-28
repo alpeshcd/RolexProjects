@@ -77,7 +77,7 @@ export default function Header({ onToggleSidebar }: { onToggleSidebar: () => voi
                 </div>
                 <nav className="topnav" aria-label="Main">
                     <Dropdown label="Market">
-                        {MARKET_MENU.map((item) => (
+                        {MARKET_MENU.filter((item) => !item.adminOnly || account.role === 'admin').map((item) => (
                             <MenuLink key={item.to} item={item} />
                         ))}
                     </Dropdown>

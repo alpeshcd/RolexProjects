@@ -1,7 +1,7 @@
 """Mastan master panel: login, account header, and market data.
 
-Market data goes through the MarketFeed (mock until the Mastan API arrives);
-accounts and balances live in the Rolex database.
+Market data goes through the MarketFeed; accounts, balances and bets live in
+the Rolex database (bets and results: exchange_bets.py).
 """
 from typing import Optional
 
@@ -136,11 +136,6 @@ def event(event_id: int, account: ExchangeAccount = Depends(get_exchange_account
     if not detail:
         raise HTTPException(status_code=404, detail="Event not found or already closed")
     return detail
-
-
-@router.get("/bets")
-def bets(event_id: Optional[int] = Query(None), account: ExchangeAccount = Depends(get_exchange_account)):
-    return get_feed().bets(account.domain_key, event_id=event_id)
 
 
 @router.get("/news")

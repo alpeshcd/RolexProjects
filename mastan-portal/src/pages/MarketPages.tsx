@@ -36,8 +36,9 @@ export function UnsettledBets() {
                     <thead>
                         <tr>
                             <th>Client</th>
-                            <th>Market</th>
+                            <th>Match / Market</th>
                             <th>Runner</th>
+                            <th>Type</th>
                             <th className="num">Rate</th>
                             <th className="num">Stake</th>
                             <th className="num">Profit/Loss</th>
@@ -46,11 +47,15 @@ export function UnsettledBets() {
                     </thead>
                     <tbody>
                         {bets.length ? (
-                            bets.map((b, i) => (
-                                <tr key={i}>
+                            bets.map((b) => (
+                                <tr key={b.id} className={`row-${b.side}`}>
                                     <td>{b.client}</td>
-                                    <td>{b.market}</td>
+                                    <td>
+                                        <Link to={`/event/${b.event_id}`}>{b.event_name}</Link>
+                                        <small className="sub">{b.market_name}</small>
+                                    </td>
                                     <td>{b.runner}</td>
+                                    <td className="cap">{b.side}</td>
                                     <td className="num">{b.run ?? fmtPrice(b.rate)}</td>
                                     <td className="num">{fmtAmount(b.stake)}</td>
                                     <td className={`num ${b.pl < 0 ? 'neg' : 'pos'}`}>{fmtAmount(b.pl)}</td>
@@ -59,7 +64,7 @@ export function UnsettledBets() {
                             ))
                         ) : (
                             <tr>
-                                <td colSpan={7} className="empty-cell">
+                                <td colSpan={8} className="empty-cell">
                                     {loading ? 'Loading…' : 'No unsettled bets'}
                                 </td>
                             </tr>

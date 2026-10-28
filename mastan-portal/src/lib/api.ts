@@ -4,7 +4,9 @@ import type {
     EventDetail,
     ExchangeEvent,
     LoginResponse,
+    MarketResult,
     Me,
+    PendingMarket,
     Portal,
     Role,
     Sport,
@@ -111,6 +113,10 @@ export const api = {
     events: (query: { sport_id?: number; inplay?: boolean }) => request<ExchangeEvent[]>('/events', { query }),
     event: (eventId: number) => request<EventDetail>(`/events/${eventId}`),
     bets: (eventId?: number) => request<Bet[]>('/bets', { query: { event_id: eventId } }),
+    pendingResults: () => request<PendingMarket[]>('/results/pending'),
+    results: () => request<MarketResult[]>('/results'),
+    declareResult: (market_id: string, winner: string) =>
+        request<MarketResult>('/results', { method: 'POST', body: { market_id, winner } }),
     news: () => request<string[]>('/news'),
 
     downline: (scope: 'downline' | 'supermaster' | 'blocked') => request<DownlineRow[]>('/downline', { query: { scope } }),

@@ -73,13 +73,6 @@ class MastanFeed(MarketFeed):
                 return None
             raise
 
-    def bets(self, domain_key: str, event_id: Optional[int] = None) -> list[dict]:
-        """Returns: [{client, runner, rate, run, stake, pl, placed_at, market}, ...]"""
-        params: dict = {"domain": domain_key}
-        if event_id is not None:
-            params["event_id"] = event_id
-        return self._get("/bets", params)  # type: ignore[return-value]
-
     def news(self, brand_name: str) -> list[str]:
         """Returns a list of news strings for the ticker."""
         try:

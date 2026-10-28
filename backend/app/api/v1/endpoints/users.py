@@ -9,6 +9,7 @@ from app.core.security import get_password_hash
 from app.models.user import User
 from app.models.dashboard import DashboardStat
 from app.models.statement import AccountStatement
+from app.services.exchange.betting import user_exposure
 from app.api.deps import CLIENT_ROLE, get_current_user
 from app.schemas.user import UserDetail, UserCreate, ClientCreateRequest, UserUpdateBalance, UserStatusUpdate, StatsSummary
 
@@ -271,8 +272,8 @@ def update_user_balance(
 
     is_debit = bal.operation == "withdraw"
     if is_debit:
-        if (user.balance or 0.0) < bal.amount:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Insufficient balance")
+        if (user.balance or 0.0) - user_exposure(db, user) < bal.amount:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Insufficient balance (open bets hold part of it)")
         user.balance = (user.balance or 0.0) - bal.amount
     else:
         user.balance = (user.balance or 0.0) + bal.amount

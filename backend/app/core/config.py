@@ -34,6 +34,13 @@ class Settings(BaseSettings):
     # local testing only. Change it from the panel (or set this) before going live.
     EXCHANGE_DEMO_PASSWORD: str = os.getenv("EXCHANGE_DEMO_PASSWORD", "master123")
 
+    # Player site betting. In-play bets wait this long and are re-checked
+    # against the live price before they are accepted.
+    PLAYER_BET_DELAY_SECONDS: int = int(os.getenv("PLAYER_BET_DELAY_SECONDS", "3"))
+    # Accept bets on mock (demo) odds, e.g. while Betfair is unreachable, so the
+    # client can test the flow. Set PLAYER_ALLOW_DEMO_ODDS=false before going live.
+    PLAYER_ALLOW_DEMO_ODDS: bool = os.getenv("PLAYER_ALLOW_DEMO_ODDS", "true").lower() == "true"
+
     # Database
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./rolex.db")
 

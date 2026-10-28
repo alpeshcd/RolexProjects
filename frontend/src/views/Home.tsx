@@ -1,460 +1,408 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useSessionUser } from '@/store/authStore'
-import { apiGetDashboardStats, apiGetMe, type DashboardStatsData } from '@/services/AuthService'
+import { apiGetDashboardStats, type DashboardStatsData } from '@/services/AuthService'
 import {
-    Card,
-    Row,
-    Col,
-    Statistic,
-    Tag,
-    Button,
-    Space,
-    Progress,
-    Badge,
-    Breadcrumb,
-    Typography,
-    Divider,
-    Alert
-} from 'antd'
-import {
-    ReloadOutlined,
-    PlusOutlined,
-    ArrowUpOutlined,
-    DollarCircleOutlined,
-    CheckCircleOutlined,
-    CloseCircleOutlined,
-    ClockCircleOutlined,
-    TeamOutlined,
-    BankOutlined,
-    SearchOutlined,
-    RightOutlined,
-    SafetyCertificateOutlined,
-    FundOutlined,
-    SwapOutlined
-} from '@ant-design/icons'
-
-const { Title, Text } = Typography
+    FaUserPlus,
+    FaMoneyBillWave,
+    FaUniversity,
+    FaSearch,
+    FaArrowCircleRight,
+} from 'react-icons/fa'
 
 const Home = () => {
     const navigate = useNavigate()
-    const user = useSessionUser((state) => state.user)
-    const setUser = useSessionUser((state) => state.setUser)
 
-    const [isRefreshing, setIsRefreshing] = useState(false)
-
+    // Default stats initialized with values matching the reference design
     const [stats, setStats] = useState<DashboardStatsData>({
-        new_clients: 13,
+        new_clients: 28,
         total_ftd: 0,
         total_ftd_count: 0,
-        total_deposits: 76720,
-        total_deposits_count: 59,
-        approved_deposits: 59120,
-        approved_deposits_count: 37,
-        rejected_deposits: 17600,
-        rejected_deposits_count: 22,
-        total_withdrawals: 189810,
-        total_withdrawals_count: 25,
-        pending_withdrawals: 7000,
-        pending_withdrawals_count: 1,
-        approved_withdrawals: 154283,
-        approved_withdrawals_count: 18,
-        rejected_withdrawals: 28527,
-        rejected_withdrawals_count: 6,
+        total_deposits: 360595,
+        total_deposits_count: 195,
+        approved_deposits: 315795,
+        approved_deposits_count: 179,
+        rejected_deposits: 44800,
+        rejected_deposits_count: 16,
+        total_withdrawals: 465226,
+        total_withdrawals_count: 97,
+        pending_withdrawals: 160566,
+        pending_withdrawals_count: 22,
+        approved_withdrawals: 284140,
+        approved_withdrawals_count: 64,
+        rejected_withdrawals: 20520,
+        rejected_withdrawals_count: 11,
     })
 
     const loadData = () => {
-        setIsRefreshing(true)
-        Promise.all([
-            apiGetMe().then((me) => {
-                if (me) setUser(me)
-            }).catch(() => {}),
-            apiGetDashboardStats().then((data) => {
+        apiGetDashboardStats()
+            .then((data) => {
                 if (data) setStats(data)
-            }).catch(() => {})
-        ]).finally(() => {
-            setTimeout(() => setIsRefreshing(false), 400)
-        })
+            })
+            .catch(() => {
+                // Keep initial demo/reference stats if API is unavailable
+            })
     }
 
     useEffect(() => {
         loadData()
+        const interval = setInterval(loadData, 10000)
+        return () => clearInterval(interval)
     }, [])
 
-    const username = user?.full_name || user?.userName || (user as any)?.username || 'Admin'
-    const userRole = ((user as any)?.role || 'Super Master').toUpperCase()
-
-    const totalDepositAmt = stats.total_deposits || 1
-    const depositApprovalRate = Math.round((stats.approved_deposits / totalDepositAmt) * 100)
-    const totalWithdrawalAmt = stats.total_withdrawals || 1
-    const withdrawalApprovalRate = Math.round((stats.approved_withdrawals / totalWithdrawalAmt) * 100)
-    const netTurnover = (stats.total_deposits || 0) - (stats.total_withdrawals || 0)
-
-    const quickLinks = [
-        { label: 'Clients', meta: `${stats.new_clients} users`, path: '/clients', icon: <TeamOutlined /> },
-        { label: 'Deposit List', meta: `${stats.total_deposits_count} deposits`, path: '/deposit', icon: <DollarCircleOutlined /> },
-        { label: 'UTR Entry', meta: 'Verification', path: '/deposits/utr-entry', icon: <CheckCircleOutlined /> },
-        { label: 'Withdrawals', meta: `${stats.pending_withdrawals_count} pending`, path: '/withdraw', icon: <ArrowUpOutlined /> },
-        { label: 'Bank Accounts', meta: 'Gateways', path: '/accounts', icon: <BankOutlined /> },
-        { label: 'Global Search', meta: 'Lookup', path: '/global-search', icon: <SearchOutlined /> },
-    ]
+    const formatIndian = (val: number | undefined | null) => {
+        if (val === undefined || val === null) return '0'
+        return Number(val).toLocaleString('en-IN')
+    }
 
     return (
-        <div className="space-y-4 w-full">
-            {/* Page Header with Breadcrumb and Actions */}
-            <div className="panel px-5 py-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
-                <div>
-                    <Breadcrumb
-                        items={[
-                            { title: 'Home' },
-                            { title: 'Dashboard' }
-                        ]}
-                        className="text-xs mb-1"
-                    />
-                    <div className="flex items-center gap-2">
-                        <Title level={4} style={{ margin: 0, fontSize: '18px' }}>
-                            Operations Dashboard
-                        </Title>
-                        <Tag color="cyan">{userRole}</Tag>
-                    </div>
-                    <Text type="secondary" className="text-xs">
-                        Welcome back, <strong>{username}</strong>. Real-time operations and payment settlement ledger.
-                    </Text>
+        <div className="w-full py-1 px-1 text-ink space-y-4">
+            {/* Header: WELCOME & Breadcrumb */}
+            <div className="flex items-center justify-between pb-2.5 border-b border-line">
+                <h1 className="text-base md:text-lg font-bold tracking-tight text-ink uppercase m-0">
+                    WELCOME
+                </h1>
+                <div className="flex items-center text-xs md:text-sm text-ink-3">
+                    <span
+                        onClick={() => navigate('/home')}
+                        className="font-semibold text-ink hover:text-primary cursor-pointer transition-colors"
+                    >
+                        Home
+                    </span>
+                    <span className="mx-2 text-ink-3 opacity-60">/</span>
+                    <span className="text-ink-3">Dashboard</span>
                 </div>
-
-                <Space wrap>
-                    <Button
-                        type="primary"
-                        icon={<PlusOutlined />}
-                        onClick={() => navigate('/deposit')}
-                    >
-                        New Deposit
-                    </Button>
-                    <Button
-                        icon={<CheckCircleOutlined />}
-                        onClick={() => navigate('/deposits/utr-entry')}
-                    >
-                        Verify UTR
-                    </Button>
-                    <Button
-                        icon={<ReloadOutlined spin={isRefreshing} />}
-                        onClick={loadData}
-                    >
-                        Refresh
-                    </Button>
-                </Space>
             </div>
 
-            {/* Quick Navigation */}
-            <div>
-                <div className="section-label mb-2.5">Quick Navigation</div>
-                <Row gutter={[12, 12]}>
-                    {quickLinks.map((item) => (
-                        <Col key={item.path} xs={12} sm={8} lg={4}>
+            {/* Quick Navigation Action Cards */}
+            <div className="space-y-4">
+                {/* Row 1: New Clients */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="bg-surface rounded-[4px] shadow-sm border border-line flex items-center overflow-hidden h-[76px] hover:border-line-strong hover:shadow-md transition-all">
+                        <div className="w-[76px] h-full bg-[#f39c12] flex items-center justify-center text-white text-2xl shrink-0">
+                            <FaUserPlus />
+                        </div>
+                        <div className="flex-1 px-4 py-2 flex flex-col justify-center items-start">
+                            <span className="text-sm font-semibold text-ink leading-snug">
+                                New Clients : {stats.new_clients}
+                            </span>
                             <button
                                 type="button"
-                                onClick={() => navigate(item.path)}
-                                className="group w-full panel p-3.5 flex flex-col items-start gap-3 text-left hover:border-primary transition-colors"
+                                onClick={() => navigate('/clients')}
+                                className="mt-1 px-3 py-1 rounded-[3px] text-[11px] font-bold tracking-wider uppercase text-white bg-[#00897b] hover:bg-[#00796b] shadow-sm transition active:scale-95 cursor-pointer"
                             >
-                                <span className="icon-chip h-9 w-9 text-base shrink-0 group-hover:bg-primary group-hover:text-white transition-colors">
-                                    {item.icon}
-                                </span>
-                                <span className="min-w-0 w-full">
-                                    <span className="block text-[13px] font-semibold text-ink truncate">{item.label}</span>
-                                    <span className="block text-[11px] text-ink-3 truncate">{item.meta}</span>
-                                </span>
+                                CLICK HERE
                             </button>
-                        </Col>
-                    ))}
-                </Row>
-            </div>
-
-            {/* Core Financial Performance Statistics */}
-            <div>
-                <div className="section-label mb-2.5">Deposit & Payout Metrics</div>
-                <Row gutter={[12, 12]}>
-                    <Col xs={24} sm={12} lg={6}>
-                        <Card
-                            size="small"
-                            className="border-line"
-                        >
-                            <Statistic
-                                title={<span className="text-xs text-ink-3">Total Deposits</span>}
-                                value={stats.total_deposits}
-                                prefix="₹"
-                                valueStyle={{ fontWeight: 600, fontSize: '18px' }}
-                            />
-                            <Divider style={{ margin: '8px 0' }} />
-                            <div className="flex items-center justify-between text-xs">
-                                <span className="text-ink-3">{stats.total_deposits_count} Requests</span>
-                                <Tag color="blue">{depositApprovalRate}% Rate</Tag>
-                            </div>
-                        </Card>
-                    </Col>
-
-                    <Col xs={24} sm={12} lg={6}>
-                        <Card
-                            size="small"
-                            className="border-line"
-                        >
-                            <Statistic
-                                title={<span className="text-xs text-ink-3">Approved Deposits</span>}
-                                value={stats.approved_deposits}
-                                prefix="₹"
-                                valueStyle={{ fontWeight: 600, fontSize: '18px', color: 'var(--success)' }}
-                            />
-                            <Divider style={{ margin: '8px 0' }} />
-                            <div className="flex items-center justify-between text-xs">
-                                <span className="text-ink-3">{stats.approved_deposits_count} Approved</span>
-                                <Tag color="green">Settled</Tag>
-                            </div>
-                        </Card>
-                    </Col>
-
-                    <Col xs={24} sm={12} lg={6}>
-                        <Card
-                            size="small"
-                            className="border-line"
-                        >
-                            <Statistic
-                                title={<span className="text-xs text-ink-3">Rejected Deposits</span>}
-                                value={stats.rejected_deposits}
-                                prefix="₹"
-                                valueStyle={{ fontWeight: 600, fontSize: '18px', color: 'var(--error)' }}
-                            />
-                            <Divider style={{ margin: '8px 0' }} />
-                            <div className="flex items-center justify-between text-xs">
-                                <span className="text-ink-3">{stats.rejected_deposits_count} Rejected</span>
-                                <Tag color="red">Unmatched</Tag>
-                            </div>
-                        </Card>
-                    </Col>
-
-                    <Col xs={24} sm={12} lg={6}>
-                        <Card
-                            size="small"
-                            className="border-line"
-                        >
-                            <Statistic
-                                title={<span className="text-xs text-ink-3">Total Withdrawals</span>}
-                                value={stats.total_withdrawals}
-                                prefix="₹"
-                                valueStyle={{ fontWeight: 600, fontSize: '18px' }}
-                            />
-                            <Divider style={{ margin: '8px 0' }} />
-                            <div className="flex items-center justify-between text-xs">
-                                <span className="text-ink-3">{stats.total_withdrawals_count} Payouts</span>
-                                <Tag color="purple">{withdrawalApprovalRate}% Paid</Tag>
-                            </div>
-                        </Card>
-                    </Col>
-                </Row>
-            </div>
-
-            {/* Operational Payouts & FTD Row */}
-            <div>
-                <Row gutter={[12, 12]}>
-                    <Col xs={24} sm={12} lg={6}>
-                        <Card
-                            size="small"
-                            className="border-line"
-                        >
-                            <Statistic
-                                title={<span className="text-xs text-warning font-medium">Pending Withdrawals</span>}
-                                value={stats.pending_withdrawals}
-                                prefix="₹"
-                                valueStyle={{ fontWeight: 600, fontSize: '18px', color: 'var(--warning)' }}
-                            />
-                            <Divider style={{ margin: '8px 0' }} />
-                            <div className="flex items-center justify-between text-xs">
-                                <span className="text-ink-3">{stats.pending_withdrawals_count} Pending</span>
-                                <Button
-                                    size="small"
-                                    type="primary"
-                                    onClick={() => navigate('/withdraw')}
-                                    className="text-xs h-6 px-2"
-                                >
-                                    Approve
-                                </Button>
-                            </div>
-                        </Card>
-                    </Col>
-
-                    <Col xs={24} sm={12} lg={6}>
-                        <Card
-                            size="small"
-                            className="border-line"
-                        >
-                            <Statistic
-                                title={<span className="text-xs text-ink-3">Approved Withdrawals</span>}
-                                value={stats.approved_withdrawals}
-                                prefix="₹"
-                                valueStyle={{ fontWeight: 600, fontSize: '18px', color: 'var(--success)' }}
-                            />
-                            <Divider style={{ margin: '8px 0' }} />
-                            <div className="flex items-center justify-between text-xs">
-                                <span className="text-ink-3">{stats.approved_withdrawals_count} Disbursed</span>
-                                <Tag color="green">Cleared</Tag>
-                            </div>
-                        </Card>
-                    </Col>
-
-                    <Col xs={24} sm={12} lg={6}>
-                        <Card
-                            size="small"
-                            className="border-line"
-                        >
-                            <Statistic
-                                title={<span className="text-xs text-ink-3">Rejected Withdrawals</span>}
-                                value={stats.rejected_withdrawals}
-                                prefix="₹"
-                                valueStyle={{ fontWeight: 600, fontSize: '18px', color: 'var(--error)' }}
-                            />
-                            <Divider style={{ margin: '8px 0' }} />
-                            <div className="flex items-center justify-between text-xs">
-                                <span className="text-ink-3">{stats.rejected_withdrawals_count} Cancelled</span>
-                                <Tag>Void</Tag>
-                            </div>
-                        </Card>
-                    </Col>
-
-                    <Col xs={24} sm={12} lg={6}>
-                        <Card
-                            size="small"
-                            className="border-line"
-                        >
-                            <Statistic
-                                title={<span className="text-xs text-ink-3">Total FTD</span>}
-                                value={stats.total_ftd}
-                                prefix="₹"
-                                valueStyle={{ fontWeight: 600, fontSize: '18px' }}
-                            />
-                            <Divider style={{ margin: '8px 0' }} />
-                            <div className="flex items-center justify-between text-xs">
-                                <span className="text-ink-3">{stats.total_ftd_count} First Deposits</span>
-                                <Tag color="cyan">Conversion</Tag>
-                            </div>
-                        </Card>
-                    </Col>
-                </Row>
-            </div>
-
-            {/* Ant Design Analytics & Settlement Breakdown */}
-            <Row gutter={[12, 12]}>
-                <Col xs={24} lg={16}>
-                    <Card
-                        size="small"
-                        title={
-                            <div className="flex items-center gap-2">
-                                <span className="icon-chip h-7 w-7 text-sm"><FundOutlined /></span>
-                                <span>Volume & Clearance Performance</span>
-                            </div>
-                        }
-                        extra={
-                            <Tag color={netTurnover >= 0 ? 'green' : 'volcano'}>
-                                Net: ₹{Number(netTurnover).toLocaleString('en-IN')}
-                            </Tag>
-                        }
-                        className="border-line"
-                    >
-                        <div className="space-y-4">
-                            <div>
-                                <div className="flex items-center justify-between text-xs mb-1">
-                                    <Text strong>Deposit Inflow Clearance</Text>
-                                    <Text type="secondary">₹{Number(stats.approved_deposits).toLocaleString('en-IN')} / ₹{Number(stats.total_deposits).toLocaleString('en-IN')}</Text>
-                                </div>
-                                <Progress
-                                    percent={depositApprovalRate}
-                                    strokeColor="var(--success)"
-                                    status="active"
-                                />
-                            </div>
-
-                            <div>
-                                <div className="flex items-center justify-between text-xs mb-1">
-                                    <Text strong>Withdrawal Disbursal Rate</Text>
-                                    <Text type="secondary">₹{Number(stats.approved_withdrawals).toLocaleString('en-IN')} / ₹{Number(stats.total_withdrawals).toLocaleString('en-IN')}</Text>
-                                </div>
-                                <Progress
-                                    percent={withdrawalApprovalRate}
-                                    strokeColor="var(--primary)"
-                                />
-                            </div>
-
-                            <Divider style={{ margin: '12px 0' }} />
-
-                            <Row gutter={16}>
-                                <Col span={8}>
-                                    <Statistic
-                                        title={<span className="text-xs text-ink-3">Processed Txns</span>}
-                                        value={stats.total_deposits_count + stats.total_withdrawals_count}
-                                        valueStyle={{ fontSize: '18px', fontWeight: 600 }}
-                                    />
-                                </Col>
-                                <Col span={8}>
-                                    <Statistic
-                                        title={<span className="text-xs text-ink-3">Cleared Deposits</span>}
-                                        value={stats.approved_deposits_count}
-                                        valueStyle={{ fontSize: '18px', fontWeight: 600, color: 'var(--success)' }}
-                                    />
-                                </Col>
-                                <Col span={8}>
-                                    <Statistic
-                                        title={<span className="text-xs text-ink-3">Cleared Payouts</span>}
-                                        value={stats.approved_withdrawals_count}
-                                        valueStyle={{ fontSize: '18px', fontWeight: 600, color: 'var(--info)' }}
-                                    />
-                                </Col>
-                            </Row>
                         </div>
-                    </Card>
-                </Col>
+                    </div>
+                </div>
 
-                <Col xs={24} lg={8}>
-                    <Card
-                        title={
-                            <div className="flex items-center gap-2">
-                                <span className="icon-chip h-7 w-7 text-sm"><BankOutlined /></span>
-                                <span>Banking Gateways</span>
-                            </div>
-                        }
-                        extra={
-                            <Button
-                                type="link"
-                                size="small"
-                                onClick={() => navigate('/accounts')}
-                                className="p-0 text-xs"
+                {/* Row 2: Deposit list, UTR Entry, Withdraw, Add Account */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {/* Deposit list */}
+                    <div className="bg-surface rounded-[4px] shadow-sm border border-line flex items-center overflow-hidden h-[76px] hover:border-line-strong hover:shadow-md transition-all">
+                        <div className="w-[76px] h-full bg-[#17a2b8] flex items-center justify-center text-white text-2xl shrink-0">
+                            <FaMoneyBillWave />
+                        </div>
+                        <div className="flex-1 px-4 py-2 flex flex-col justify-center items-start">
+                            <span className="text-sm font-semibold text-ink leading-snug">
+                                Deposit list
+                            </span>
+                            <button
+                                type="button"
+                                onClick={() => navigate('/deposit')}
+                                className="mt-1 px-3 py-1 rounded-[3px] text-[11px] font-bold tracking-wider uppercase text-white bg-[#f39c12] hover:bg-[#d68910] shadow-sm transition active:scale-95 cursor-pointer"
                             >
-                                Manage <RightOutlined />
-                            </Button>
-                        }
-                        className="border-line"
-                        size="small"
-                    >
-                        <div className="space-y-3">
-                            <div className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-surface-2 border border-line">
-                                <Text strong className="text-xs">ICICI Corporate Bank</Text>
-                                <Badge status="success" text={<span className="text-xs text-ink-2">Active</span>} />
+                                CLICK HERE
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* UTR Entry */}
+                    <div className="bg-surface rounded-[4px] shadow-sm border border-line flex items-center overflow-hidden h-[76px] hover:border-line-strong hover:shadow-md transition-all">
+                        <div className="w-[76px] h-full bg-[#c0392b] flex items-center justify-center text-white text-2xl shrink-0">
+                            <FaUniversity />
+                        </div>
+                        <div className="flex-1 px-4 py-2 flex flex-col justify-center items-start">
+                            <span className="text-sm font-semibold text-ink leading-snug">
+                                UTR Entry
+                            </span>
+                            <button
+                                type="button"
+                                onClick={() => navigate('/deposits/utr-entry')}
+                                className="mt-1 px-3 py-1 rounded-[3px] text-[11px] font-bold tracking-wider uppercase text-white bg-[#00897b] hover:bg-[#00796b] shadow-sm transition active:scale-95 cursor-pointer"
+                            >
+                                CLICK HERE
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Withdraw */}
+                    <div className="bg-surface rounded-[4px] shadow-sm border border-line flex items-center overflow-hidden h-[76px] hover:border-line-strong hover:shadow-md transition-all">
+                        <div className="w-[76px] h-full bg-[#28a745] flex items-center justify-center text-white text-2xl shrink-0">
+                            <FaMoneyBillWave />
+                        </div>
+                        <div className="flex-1 px-4 py-2 flex flex-col justify-center items-start">
+                            <span className="text-sm font-semibold text-ink leading-snug">
+                                Withdraw
+                            </span>
+                            <button
+                                type="button"
+                                onClick={() => navigate('/withdraw')}
+                                className="mt-1 px-3 py-1 rounded-[3px] text-[11px] font-bold tracking-wider uppercase text-white bg-[#f39c12] hover:bg-[#d68910] shadow-sm transition active:scale-95 cursor-pointer"
+                            >
+                                CLICK HERE
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Add Account */}
+                    <div className="bg-surface rounded-[4px] shadow-sm border border-line flex items-center overflow-hidden h-[76px] hover:border-line-strong hover:shadow-md transition-all">
+                        <div className="w-[76px] h-full bg-[#c0392b] flex items-center justify-center text-white text-2xl shrink-0">
+                            <FaUniversity />
+                        </div>
+                        <div className="flex-1 px-4 py-2 flex flex-col justify-center items-start">
+                            <span className="text-sm font-semibold text-ink leading-snug">
+                                Add Account
+                            </span>
+                            <button
+                                type="button"
+                                onClick={() => navigate('/accounts')}
+                                className="mt-1 px-3 py-1 rounded-[3px] text-[11px] font-bold tracking-wider uppercase text-white bg-[#00897b] hover:bg-[#00796b] shadow-sm transition active:scale-95 cursor-pointer"
+                            >
+                                CLICK HERE
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Row 3: Account list, Global search */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {/* Account list */}
+                    <div className="bg-surface rounded-[4px] shadow-sm border border-line flex items-center overflow-hidden h-[76px] hover:border-line-strong hover:shadow-md transition-all">
+                        <div className="w-[76px] h-full bg-[#c0392b] flex items-center justify-center text-white text-2xl shrink-0">
+                            <FaUniversity />
+                        </div>
+                        <div className="flex-1 px-4 py-2 flex flex-col justify-center items-start">
+                            <span className="text-sm font-semibold text-ink leading-snug">
+                                Account list
+                            </span>
+                            <button
+                                type="button"
+                                onClick={() => navigate('/accounts')}
+                                className="mt-1 px-3 py-1 rounded-[3px] text-[11px] font-bold tracking-wider uppercase text-white bg-[#f39c12] hover:bg-[#d68910] shadow-sm transition active:scale-95 cursor-pointer"
+                            >
+                                CLICK HERE
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Global search */}
+                    <div className="bg-surface rounded-[4px] shadow-sm border border-line flex items-center overflow-hidden h-[76px] hover:border-line-strong hover:shadow-md transition-all">
+                        <div className="w-[76px] h-full bg-[#f39c12] flex items-center justify-center text-white text-2xl shrink-0">
+                            <FaSearch />
+                        </div>
+                        <div className="flex-1 px-4 py-2 flex flex-col justify-center items-start">
+                            <span className="text-sm font-semibold text-ink leading-snug">
+                                Global search
+                            </span>
+                            <button
+                                type="button"
+                                onClick={() => navigate('/global-search')}
+                                className="mt-1 px-3 py-1 rounded-[3px] text-[11px] font-bold tracking-wider uppercase text-white bg-[#00897b] hover:bg-[#00796b] shadow-sm transition active:scale-95 cursor-pointer"
+                            >
+                                CLICK HERE
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Core Financial Stat Cards Section */}
+            <div className="space-y-4 pt-2">
+                {/* Row 4: Total FTD */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="bg-[#17a2b8] rounded-[4px] shadow-sm text-white overflow-hidden relative p-3.5 min-h-[92px] flex flex-col justify-between border border-black/10 dark:border-white/10 transition-transform hover:-translate-y-0.5">
+                        <div className="absolute top-3.5 right-3.5 text-black/60 dark:text-black/50 text-2xl pointer-events-none select-none">
+                            <FaMoneyBillWave />
+                        </div>
+                        <div>
+                            <div className="text-2xl md:text-3xl font-bold leading-none tracking-tight text-white">
+                                {formatIndian(stats.total_ftd)}
                             </div>
-                            <div className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-surface-2 border border-line">
-                                <Text strong className="text-xs">HDFC Gateway Account</Text>
-                                <Badge status="success" text={<span className="text-xs text-ink-2">Active</span>} />
-                            </div>
-                            <div className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-surface-2 border border-line">
-                                <Text strong className="text-xs">UPI Auto-Reconciliation</Text>
-                                <Badge status="success" text={<span className="text-xs text-ink-2">Active</span>} />
-                            </div>
-                            <Divider style={{ margin: '8px 0' }} />
-                            <div className="flex items-center justify-between text-xs text-ink-3">
-                                <span className="flex items-center gap-1">
-                                    <SafetyCertificateOutlined className="text-primary" /> 256-Bit SSL Enforced
-                                </span>
-                                <Badge status="processing" text={<span className="text-xs">Online</span>} />
+                            <div className="text-xs md:text-sm font-medium text-white/95 mt-1.5">
+                                Total FTD : {stats.total_ftd_count}
                             </div>
                         </div>
-                    </Card>
-                </Col>
-            </Row>
+                    </div>
+                </div>
+
+                {/* Row 5: Total Deposits, Total Approved Deposits, Total Rejected Deposits, Total Withdrawals */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {/* Total Deposits */}
+                    <div className="bg-[#17a2b8] rounded-[4px] shadow-sm text-white overflow-hidden relative flex flex-col justify-between border border-black/10 dark:border-white/10 transition-transform hover:-translate-y-0.5">
+                        <div className="p-3.5 relative">
+                            <div className="absolute top-3.5 right-3.5 text-black/60 dark:text-black/50 text-2xl pointer-events-none select-none">
+                                <FaMoneyBillWave />
+                            </div>
+                            <div className="text-2xl md:text-3xl font-bold leading-none tracking-tight text-white">
+                                {formatIndian(stats.total_deposits)}
+                            </div>
+                            <div className="text-xs md:text-sm font-medium text-white/95 mt-1.5">
+                                Total Deposits : {stats.total_deposits_count}
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => navigate('/deposit')}
+                            className="w-full bg-black/15 hover:bg-black/25 active:bg-black/35 transition-colors py-1 px-3 text-center text-xs text-white flex items-center justify-center gap-1.5 font-medium cursor-pointer"
+                        >
+                            <span>More info</span>
+                            <FaArrowCircleRight className="text-[13px]" />
+                        </button>
+                    </div>
+
+                    {/* Total Approved Deposits */}
+                    <div className="bg-[#28a745] rounded-[4px] shadow-sm text-white overflow-hidden relative flex flex-col justify-between border border-black/10 dark:border-white/10 transition-transform hover:-translate-y-0.5">
+                        <div className="p-3.5 relative">
+                            <div className="absolute top-3.5 right-3.5 text-black/60 dark:text-black/50 text-2xl pointer-events-none select-none">
+                                <FaMoneyBillWave />
+                            </div>
+                            <div className="text-2xl md:text-3xl font-bold leading-none tracking-tight text-white">
+                                {formatIndian(stats.approved_deposits)}
+                            </div>
+                            <div className="text-xs md:text-sm font-medium text-white/95 mt-1.5">
+                                Total Approved Deposits : {stats.approved_deposits_count}
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => navigate('/deposit')}
+                            className="w-full bg-black/15 hover:bg-black/25 active:bg-black/35 transition-colors py-1 px-3 text-center text-xs text-white flex items-center justify-center gap-1.5 font-medium cursor-pointer"
+                        >
+                            <span>More info</span>
+                            <FaArrowCircleRight className="text-[13px]" />
+                        </button>
+                    </div>
+
+                    {/* Total Rejected Deposits */}
+                    <div className="bg-[#dc3545] rounded-[4px] shadow-sm text-white overflow-hidden relative flex flex-col justify-between border border-black/10 dark:border-white/10 transition-transform hover:-translate-y-0.5">
+                        <div className="p-3.5 relative">
+                            <div className="absolute top-3.5 right-3.5 text-black/60 dark:text-black/50 text-2xl pointer-events-none select-none">
+                                <FaMoneyBillWave />
+                            </div>
+                            <div className="text-2xl md:text-3xl font-bold leading-none tracking-tight text-white">
+                                {formatIndian(stats.rejected_deposits)}
+                            </div>
+                            <div className="text-xs md:text-sm font-medium text-white/95 mt-1.5">
+                                Total Rejected Deposits : {stats.rejected_deposits_count}
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => navigate('/deposit')}
+                            className="w-full bg-black/15 hover:bg-black/25 active:bg-black/35 transition-colors py-1 px-3 text-center text-xs text-white flex items-center justify-center gap-1.5 font-medium cursor-pointer"
+                        >
+                            <span>More info</span>
+                            <FaArrowCircleRight className="text-[13px]" />
+                        </button>
+                    </div>
+
+                    {/* Total Withdrawals */}
+                    <div className="bg-[#17a2b8] rounded-[4px] shadow-sm text-white overflow-hidden relative flex flex-col justify-between border border-black/10 dark:border-white/10 transition-transform hover:-translate-y-0.5">
+                        <div className="p-3.5 relative">
+                            <div className="absolute top-3.5 right-3.5 text-black/60 dark:text-black/50 text-2xl pointer-events-none select-none">
+                                <FaMoneyBillWave />
+                            </div>
+                            <div className="text-2xl md:text-3xl font-bold leading-none tracking-tight text-white">
+                                {formatIndian(stats.total_withdrawals)}
+                            </div>
+                            <div className="text-xs md:text-sm font-medium text-white/95 mt-1.5">
+                                Total Withdrawals : {stats.total_withdrawals_count}
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => navigate('/withdraw')}
+                            className="w-full bg-black/15 hover:bg-black/25 active:bg-black/35 transition-colors py-1 px-3 text-center text-xs text-white flex items-center justify-center gap-1.5 font-medium cursor-pointer"
+                        >
+                            <span>More info</span>
+                            <FaArrowCircleRight className="text-[13px]" />
+                        </button>
+                    </div>
+                </div>
+
+                {/* Row 6: Total Pending Withdrawals, Total Approved Withdrawals, Total Rejected Withdrawals */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {/* Total Pending Withdrawals */}
+                    <div className="bg-[#f39c12] rounded-[4px] shadow-sm text-white overflow-hidden relative flex flex-col justify-between border border-black/10 dark:border-white/10 transition-transform hover:-translate-y-0.5">
+                        <div className="p-3.5 relative">
+                            <div className="absolute top-3.5 right-3.5 text-black/60 dark:text-black/50 text-2xl pointer-events-none select-none">
+                                <FaMoneyBillWave />
+                            </div>
+                            <div className="text-2xl md:text-3xl font-bold leading-none tracking-tight text-white">
+                                {formatIndian(stats.pending_withdrawals)}
+                            </div>
+                            <div className="text-xs md:text-sm font-medium text-white/95 mt-1.5">
+                                Total Pending Withdrawals : {stats.pending_withdrawals_count}
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => navigate('/withdraw')}
+                            className="w-full bg-black/15 hover:bg-black/25 active:bg-black/35 transition-colors py-1 px-3 text-center text-xs text-white flex items-center justify-center gap-1.5 font-medium cursor-pointer"
+                        >
+                            <span>More info</span>
+                            <FaArrowCircleRight className="text-[13px]" />
+                        </button>
+                    </div>
+
+                    {/* Total Approved Withdrawals */}
+                    <div className="bg-[#28a745] rounded-[4px] shadow-sm text-white overflow-hidden relative flex flex-col justify-between border border-black/10 dark:border-white/10 transition-transform hover:-translate-y-0.5">
+                        <div className="p-3.5 relative">
+                            <div className="absolute top-3.5 right-3.5 text-black/60 dark:text-black/50 text-2xl pointer-events-none select-none">
+                                <FaMoneyBillWave />
+                            </div>
+                            <div className="text-2xl md:text-3xl font-bold leading-none tracking-tight text-white">
+                                {formatIndian(stats.approved_withdrawals)}
+                            </div>
+                            <div className="text-xs md:text-sm font-medium text-white/95 mt-1.5">
+                                Total Approved Withdrawals : {stats.approved_withdrawals_count}
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => navigate('/withdraw')}
+                            className="w-full bg-black/15 hover:bg-black/25 active:bg-black/35 transition-colors py-1 px-3 text-center text-xs text-white flex items-center justify-center gap-1.5 font-medium cursor-pointer"
+                        >
+                            <span>More info</span>
+                            <FaArrowCircleRight className="text-[13px]" />
+                        </button>
+                    </div>
+
+                    {/* Total Rejected Withdrawals */}
+                    <div className="bg-[#dc3545] rounded-[4px] shadow-sm text-white overflow-hidden relative flex flex-col justify-between border border-black/10 dark:border-white/10 transition-transform hover:-translate-y-0.5">
+                        <div className="p-3.5 relative">
+                            <div className="absolute top-3.5 right-3.5 text-black/60 dark:text-black/50 text-2xl pointer-events-none select-none">
+                                <FaMoneyBillWave />
+                            </div>
+                            <div className="text-2xl md:text-3xl font-bold leading-none tracking-tight text-white">
+                                {formatIndian(stats.rejected_withdrawals)}
+                            </div>
+                            <div className="text-xs md:text-sm font-medium text-white/95 mt-1.5">
+                                Total Rejected Withdrawals : {stats.rejected_withdrawals_count}
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => navigate('/withdraw')}
+                            className="w-full bg-black/15 hover:bg-black/25 active:bg-black/35 transition-colors py-1 px-3 text-center text-xs text-white flex items-center justify-center gap-1.5 font-medium cursor-pointer"
+                        >
+                            <span>More info</span>
+                            <FaArrowCircleRight className="text-[13px]" />
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     )
 }

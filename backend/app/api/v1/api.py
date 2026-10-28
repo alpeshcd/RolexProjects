@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from app.api.deps import get_current_user
-from app.api.v1.endpoints import auth, users, dashboard, global_search, accounts, deposits, withdrawals, statements, exchange, exchange_downline
+from app.api.v1.endpoints import auth, users, dashboard, global_search, accounts, deposits, withdrawals, statements, exchange, exchange_downline, exchange_bets, player
 
 api_router = APIRouter()
 
@@ -19,5 +19,9 @@ api_router.include_router(statements.router, prefix="/statements", tags=["Statem
 # Mastan master panel. Signs in its own accounts (see get_exchange_account), not Rolex staff.
 api_router.include_router(exchange.router, prefix="/exchange", tags=["Mastan Panel"])
 api_router.include_router(exchange_downline.router, prefix="/exchange", tags=["Mastan Panel"])
+api_router.include_router(exchange_bets.router, prefix="/exchange", tags=["Mastan Panel"])
+
+# Player site. Signs in clients (see get_player).
+api_router.include_router(player.router, prefix="/player", tags=["Player Site"])
 
 

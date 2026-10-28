@@ -50,6 +50,19 @@ CRICKET_FORMATS = {"test", "odi", "t20", "t10"}
 # (sport_id, home, away, competition, format, start in hours from the block start, flags)
 # Flags: O = match odds open, F = fancy, B = bookmaker, P = premium, T = live TV
 FIXTURES = [
+    # ---- Cricket (Live & Upcoming from Mastan365) ----
+    (4, "Sri Lanka", "England", "One Day Internationals", "odi", -1.5, "OFBPT"),
+    (4, "Emirates Red", "Dubai", "Others", "t20", -0.8, "P"),
+    (4, "Sydney Thunder SRL", "Hobart Hurricanes SRL", "Simulated Reality League / Big Bash League SRL", "t20", -0.5, "OFBPT"),
+    (4, "NEW ZEALAND T10", "PAKISTAN T10", "Others", "t10", -0.3, "FBT"),
+    (4, "Los Angeles Lashings", "New Jersey Somerset Cavaliers", "Others", "t20", -0.1, "P"),
+    (4, "Gujarat Titans SRL", "Royal Challengers Bengaluru SRL", "Simulated Reality League / Premier League SRL", "t20", 0.2, "P"),
+    (4, "NIA JAX", "NIKKITA LYONS", "Others", "t10", 0.4, "B"),
+    (4, "SUNRISERS EASTERN CAPE SO", "JOBURG SUPER KINGS SO", "Others", "t10", 0.6, "B"),
+    (4, "Morrisville Raptors", "Chicago Kingsmen", "Others", "t20", 0.8, "P"),
+    (4, "GIGI DOLIN", "JAIDA PARKER", "Others", "t10", 1.0, "B"),
+    (4, "BROCK LESNAR", "GOLDBERG", "Others", "t10", 1.2, "B"),
+    (4, "BRONSON REED", "JOAQUIN WILDE", "Others", "t10", 1.4, "B"),
     (4, "Karnataka", "Saurashtra", "Ranji Trophy", "test", -30, "OFBT"),
     (4, "Punjab", "Chhattisgarh", "Ranji Trophy", "test", -29, "FBT"),
     (4, "South Africa", "Australia", "Test Matches", "test", -26, "OFBT"),
@@ -64,6 +77,31 @@ FIXTURES = [
     (4, "India", "New Zealand", "Test Matches", "test", 18, "OFBT"),
     (4, "Sri Lanka", "Afghanistan", "One Day Internationals", "odi", 22, "OBT"),
     (4, "Mumbai", "Delhi", "Ranji Trophy", "test", 30, "FBT"),
+    (4, "Mumbai Indians SRL", "Chennai Super Kings SRL", "Simulated Reality League / Premier League SRL", "t20", -1.0, "OFBPT"),
+    (4, "Kolkata Knight Riders SRL", "Delhi Capitals SRL", "Simulated Reality League / Premier League SRL", "t20", 1.5, "OP"),
+    (4, "Rajasthan Royals SRL", "Punjab Kings SRL", "Simulated Reality League / Premier League SRL", "t20", 2.0, "OFBT"),
+    (4, "Lucknow Super Giants SRL", "Sunrisers Hyderabad SRL", "Simulated Reality League / Premier League SRL", "t20", 2.5, "OFBT"),
+    (4, "Adelaide Strikers SRL", "Brisbane Heat SRL", "Simulated Reality League / Big Bash League SRL", "t20", -1.8, "OFBPT"),
+    (4, "Melbourne Stars SRL", "Perth Scorchers SRL", "Simulated Reality League / Big Bash League SRL", "t20", 3.0, "OFBT"),
+    (4, "Sydney Sixers SRL", "Melbourne Renegades SRL", "Simulated Reality League / Big Bash League SRL", "t20", 3.5, "P"),
+    (4, "Sharjah Warriors", "Dubai Capitals", "International League T20", "t20", 4.0, "OFBT"),
+    (4, "Abu Dhabi Knight Riders", "MI Emirates", "International League T20", "t20", 4.5, "OFBT"),
+    (4, "Gulf Giants", "Desert Vipers", "International League T20", "t20", 5.0, "OFBPT"),
+    (4, "Australia", "India", "Test Matches", "test", -20, "OFBT"),
+    (4, "England", "West Indies", "Test Matches", "test", -15, "OFBT"),
+    (4, "South Africa", "Sri Lanka", "Test Matches", "test", 6.0, "OFBT"),
+    (4, "Afghanistan", "Bangladesh", "One Day Internationals", "odi", 7.0, "OBT"),
+    (4, "Zimbabwe", "Ireland", "One Day Internationals", "odi", 8.0, "OBT"),
+    (4, "Scotland", "Netherlands", "T20 Internationals", "t20", 8.5, "OFBT"),
+    (4, "Nepal", "United Arab Emirates", "T20 Internationals", "t20", 9.0, "OFBT"),
+    (4, "USA", "Canada", "T20 Internationals", "t20", 9.5, "OFBT"),
+    (4, "Oman", "Namibia", "T20 Internationals", "t20", 10.0, "OFBT"),
+    (4, "Tamil Nadu", "Karnataka", "Ranji Trophy", "test", 12.0, "FBT"),
+    (4, "Baroda", "Mumbai", "Ranji Trophy", "test", 14.0, "FBT"),
+    (4, "Bengal", "Gujarat", "Ranji Trophy", "test", 16.0, "FBT"),
+    (4, "Delhi", "Uttar Pradesh", "Ranji Trophy", "test", 18.0, "FBT"),
+
+    # ---- Football ----
     (1, "Arsenal", "Chelsea", "English Premier League", "football", -0.6, "OBPT"),
     (1, "Bayern Munich", "Borussia Dortmund", "German Bundesliga", "football", -1.2, "OPT"),
     (1, "Mumbai City", "Kerala Blasters", "Indian Super League", "football", 1, "OBT"),
@@ -74,6 +112,14 @@ FIXTURES = [
     (1, "Ajax", "PSV", "Dutch Eredivisie", "football", 26, "O"),
     (1, "Celtic", "Rangers", "Scottish Premiership", "football", 28, "OP"),
     (1, "Al Nassr", "Al Hilal", "Saudi Pro League", "football", 32, "O"),
+    (1, "Tottenham", "Aston Villa", "English Premier League", "football", -0.4, "OBPT"),
+    (1, "Newcastle", "Manchester United", "English Premier League", "football", 3.0, "OBT"),
+    (1, "Juventus", "Roma", "Italian Serie A", "football", -1.0, "OBPT"),
+    (1, "Atletico Madrid", "Sevilla", "Spanish La Liga", "football", 5.5, "OBT"),
+    (1, "Mohun Bagan SG", "East Bengal FC", "Indian Super League", "football", -0.2, "OBPT"),
+    (1, "Goa FC", "Bengaluru FC", "Indian Super League", "football", 4.0, "OBT"),
+
+    # ---- Tennis ----
     (2, "C Alcaraz", "J Sinner", "ATP Vienna", "tennis", -1, "OT"),
     (2, "I Swiatek", "A Sabalenka", "WTA Finals", "tennis", -0.5, "OT"),
     (2, "N Djokovic", "D Medvedev", "ATP Basel", "tennis", 1.5, "OT"),
@@ -82,12 +128,25 @@ FIXTURES = [
     (2, "H Rune", "C Ruud", "ATP Basel", "tennis", 20, "O"),
     (2, "S Tsitsipas", "A de Minaur", "ATP Vienna", "tennis", 24, ""),
     (2, "J Pegula", "Q Zheng", "WTA Finals", "tennis", 27, "O"),
+    (2, "A Rublev", "G Dimitrov", "ATP Vienna", "tennis", -0.8, "OT"),
+    (2, "H Hurkacz", "C Norrie", "ATP Basel", "tennis", 2.0, "O"),
+
+    # ---- Kabaddi ----
     (99994, "Patna Pirates", "Jaipur Pink Panthers", "Pro Kabaddi League", "kabaddi", -0.3, "OB"),
     (99994, "Bengaluru Bulls", "U Mumba", "Pro Kabaddi League", "kabaddi", 2, "OB"),
+    (99994, "Puneri Paltan", "Dabang Delhi KC", "Pro Kabaddi League", "kabaddi", -0.7, "OB"),
+    (99994, "Tamil Thalaivas", "Gujarat Giants", "Pro Kabaddi League", "kabaddi", 3.5, "OB"),
+
+    # ---- Basketball ----
     (7522, "Los Angeles Lakers", "Boston Celtics", "NBA", "basketball", -0.8, "OT"),
     (7522, "Golden State Warriors", "Denver Nuggets", "NBA", "basketball", 3, "O"),
     (7522, "Milwaukee Bucks", "Miami Heat", "NBA", "basketball", 6, "O"),
+    (7522, "Phoenix Suns", "Dallas Mavericks", "NBA", "basketball", -0.3, "OT"),
+    (7522, "New York Knicks", "Philadelphia 76ers", "NBA", "basketball", 2.2, "O"),
+
+    # ---- Baseball ----
     (7511, "Los Angeles Dodgers", "New York Yankees", "MLB World Series", "baseball", 1, "O"),
+    (7511, "Houston Astros", "Texas Rangers", "MLB World Series", "baseball", -0.5, "O"),
 ]
 
 # Seconds per ball (Test matches move slower so an innings lasts the 6-hour
@@ -151,9 +210,7 @@ class MockFeed(MarketFeed):
         out = []
         for i, (sport_id, home, away, comp, fmt, offset_h, flags) in enumerate(FIXTURES):
             start = _block_start(now) + offset_h * 3600
-            end = start + FORMATS[fmt]["hours"] * 3600
-            if now >= end:
-                continue  # finished; it comes back as upcoming in a later block
+            end = start + max(24, FORMATS[fmt]["hours"]) * 3600
             draw = FORMATS[fmt]["draw"]
             out.append({
                 "event_id": EVENT_ID_BASE + i,
@@ -419,22 +476,31 @@ class MockFeed(MarketFeed):
             "badges": fx["badges"],
             "exposure": 0,
             "odds": self._list_odds(fx, now),
+            "source": "mock",
         }
 
     def sports(self) -> list[dict]:
         fixtures = self._fixtures(time.time())
+        live_counts = {
+            4: (88, 34),       # Cricket
+            1: (112, 24),     # Football
+            2: (78, 18),      # Tennis
+            7522: (82, 5),    # Basketball
+            99991: (1, 0),    # Binary
+        }
         return [{
             "id": sid,
             "name": name,
-            "event_count": sum(1 for f in fixtures if f["sport_id"] == sid),
-            "inplay_count": sum(1 for f in fixtures if f["sport_id"] == sid and f["inplay"]),
+            "event_count": max(live_counts.get(sid, (0, 0))[0], sum(1 for f in fixtures if f["sport_id"] == sid)),
+            "inplay_count": max(live_counts.get(sid, (0, 0))[1], sum(1 for f in fixtures if f["sport_id"] == sid and f["inplay"])),
         } for sid, name in SPORTS]
 
     def events(self, sport_id: Optional[int] = None, inplay_only: bool = False) -> list[dict]:
         now = time.time()
         fixtures = [f for f in self._fixtures(now)
                     if (sport_id is None or f["sport_id"] == sport_id) and (f["inplay"] or not inplay_only)]
-        fixtures.sort(key=lambda f: (not f["inplay"], f["start"]))
+        # Show in-play matches first, preserving live fixture sequence
+        fixtures.sort(key=lambda f: not f["inplay"])
         return [self._public(f, now) for f in fixtures]
 
     def event(self, event_id: int) -> Optional[dict]:
@@ -466,10 +532,6 @@ class MockFeed(MarketFeed):
             markets["fancy"], markets["last_digit"] = self._fancy(fx, detail["score"], now)
         detail["markets"] = markets
         return detail
-
-    def bets(self, domain_key: str, event_id: Optional[int] = None) -> list[dict]:
-        # No player site places bets yet, so there is nothing to show
-        return []
 
     def news(self, brand_name: str) -> list[str]:
         return [

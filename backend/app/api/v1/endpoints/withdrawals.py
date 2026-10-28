@@ -9,6 +9,7 @@ from app.models.withdrawal import Withdrawal
 from app.models.user import User
 from app.models.dashboard import DashboardStat
 from app.models.statement import AccountStatement
+from app.services.exchange.betting import user_exposure
 from app.schemas.withdrawal import (
     WithdrawalCreate,
     WithdrawalApprovePayload,
@@ -327,11 +328,12 @@ def create_withdrawal(with_in: WithdrawalCreate, db: Session = Depends(get_db)):
     site_name = user_obj.site or with_in.site or "Mastan99"
     domain_name = user_obj.domain or "mastan99.com"
 
-    # Check client balance
-    if (user_obj.balance or 0.0) < with_in.amount:
+    # Check client balance (minus what open bets hold as exposure)
+    free = (user_obj.balance or 0.0) - user_exposure(db, user_obj)
+    if free < with_in.amount:
         raise HTTPException(
             status_code=400,
-            detail=f"Insufficient client balance (Current: ₹{user_obj.balance:,.2f}, Requested: ₹{with_in.amount:,.2f})"
+            detail=f"Insufficient client balance (Available: ₹{free:,.2f}, Requested: ₹{with_in.amount:,.2f})"
         )
 
     new_with = Withdrawal(
@@ -397,10 +399,11 @@ def approve_withdrawal(withdrawal_id: int, payload: WithdrawalApprovePayload, db
     user = db.query(User).filter(User.username.ilike(with_rec.username)).first()
     if not user:
         raise HTTPException(status_code=404, detail=f"Client '{with_rec.username}' not found")
-    if (user.balance or 0.0) < with_rec.amount:
+    free = (user.balance or 0.0) - user_exposure(db, user)
+    if free < with_rec.amount:
         raise HTTPException(
             status_code=400,
-            detail=f"Insufficient client balance (Current: ₹{user.balance or 0:,.2f}, Payout: ₹{with_rec.amount:,.2f})"
+            detail=f"Insufficient client balance (Available: ₹{free:,.2f}, Payout: ₹{with_rec.amount:,.2f})"
         )
 
     with_rec.status = "Approved"

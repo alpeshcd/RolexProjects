@@ -1,7 +1,7 @@
 """Market data source for the Mastan master panel.
 
-Everything the panel shows about sports, fixtures, odds, scores and bets comes
-through a MarketFeed. Today that is MockFeed; when the client shares the Mastan
+Everything the panel and the player site show about sports, fixtures, odds and
+scores comes through a MarketFeed. Bets are our own (app.services.exchange.betting). Today that is MockFeed; when the client shares the Mastan
 exchange API, add a feed that calls it, return the same shapes, and point
 EXCHANGE_PROVIDER at it. The panel frontend does not change.
 
@@ -10,11 +10,11 @@ Shapes (all plain dicts, JSON-ready):
 sport:  {id, name, event_count, inplay_count}
 event:  {event_id, sport_id, sport_name, name, competition, open_date (ISO),
          inplay, badges: {fancy, bookmaker, premium, tv}, exposure,
-         odds: [slot, slot, slot]}  # runner 1, the draw, runner 2
+         odds: [slot, slot, slot],  # runner 1, the draw, runner 2
+         source: "mock" | "betfair" | ...}  # "mock" = demo prices
 slot:   {back: {price, size} | None, lay: {price, size} | None} | None
 detail: event + {home, away, score | None, markets: {match_odds, bookmaker,
          fancy: [...], last_digit}}
-bet:    {client, runner, rate, run, stake, pl, placed_at, market}
 """
 from abc import ABC, abstractmethod
 from typing import Optional
@@ -31,9 +31,6 @@ class MarketFeed(ABC):
 
     @abstractmethod
     def event(self, event_id: int) -> Optional[dict]: ...
-
-    @abstractmethod
-    def bets(self, domain_key: str, event_id: Optional[int] = None) -> list[dict]: ...
 
     @abstractmethod
     def news(self, brand_name: str) -> list[str]: ...

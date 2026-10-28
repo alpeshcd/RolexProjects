@@ -9,6 +9,7 @@ import EventPage from './pages/EventPage'
 import Home from './pages/Home'
 import Login from './pages/Login'
 import { MultiMarket, NotFound, PendingReport, UnsettledBets } from './pages/MarketPages'
+import Results from './pages/Results'
 import Profile from './pages/Profile'
 import Statement from './pages/Statement'
 import { PENDING_REPORTS } from './menus'
@@ -39,6 +40,7 @@ export default function App() {
                         <Route path="/event/:eventId" element={<EventPage />} />
                         <Route path="/market/multi" element={<MultiMarket />} />
                         <Route path="/market/unsettled" element={<UnsettledBets />} />
+                        <Route path="/market/results" element={<Results />} />
                         <Route path="/clients/downline" element={<Downline />} />
                         <Route path="/clients/super-master" element={<Downline />} />
                         <Route path="/clients/blocked" element={<Downline />} />

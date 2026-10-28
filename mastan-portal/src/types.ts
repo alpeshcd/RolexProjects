@@ -156,15 +156,53 @@ export interface EventDetail extends ExchangeEvent {
     }
 }
 
+// A player-site bet. Open bets show `pl` as what the client makes if the runner wins.
 export interface Bet {
+    id: number
     client: string
+    event_id: number
+    event_name: string
+    market: string
+    market_id: string
+    market_name: string
     runner: string
+    side: 'back' | 'lay'
     rate: number
     run: number | null
     stake: number
     pl: number
+    liability: number
+    status: 'open' | 'won' | 'lost' | 'void'
+    demo_odds: boolean
     placed_at: string
-    market: string
+}
+
+// A market with open bets, waiting for the Admin to declare its result
+export interface PendingMarket {
+    market_id: string
+    market_type: string
+    market_name: string
+    event_id: number
+    event_name: string
+    sport_name: string | null
+    runners: string[]
+    bet_count: number
+    total_stake: number
+    // The house's profit/loss on each runner if it wins
+    book: Record<string, number>
+    last_bet_at: string
+}
+
+export interface MarketResult {
+    id: number
+    market_id: string
+    event_id: number
+    event_name: string
+    market_name: string
+    winner: string
+    bet_count: number
+    declared_by: string
+    declared_at: string
 }
 
 export interface DownlineRow {

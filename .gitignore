@@ -25,3 +25,10 @@ build
 *.sln
 *.sw?
 .vite-cache/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/

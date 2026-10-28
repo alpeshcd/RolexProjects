@@ -20,8 +20,8 @@ function BetTable({ bets, fancy }: { bets: Bet[]; fancy?: boolean }) {
                 </thead>
                 <tbody>
                     {bets.length ? (
-                        bets.map((b, i) => (
-                            <tr key={i}>
+                        bets.map((b) => (
+                            <tr key={b.id} className={`row-${b.side}`}>
                                 <td>{b.client}</td>
                                 <td>{b.runner}</td>
                                 <td>{fancy ? b.run : fmtPrice(b.rate)}</td>
@@ -67,7 +67,7 @@ export default function BetsPanel({ eventId }: { eventId: number }) {
                 <div className="tv-box">Live TV will play here once the Mastan stream API is connected.</div>
             ) : (
                 <>
-                    {/* Unmatched bets need the exchange API; matched ones come from the feed */}
+                    {/* The house takes every bet in full, so nothing stays unmatched */}
                     <BetTable bets={tab === 'matched' ? otherBets : []} />
                     <div className="bets-subtitle">Fancy Bet List</div>
                     <BetTable bets={tab === 'matched' ? fancyBets : []} fancy />

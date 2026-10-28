@@ -6,10 +6,11 @@ export interface MenuItem {
     letter?: string
 }
 
-export const MARKET_MENU: MenuItem[] = [
+export const MARKET_MENU: (MenuItem & { adminOnly?: boolean })[] = [
     { label: 'Market Analysis', to: '/market/analysis' },
     { label: 'Multi Market', to: '/market/multi' },
     { label: 'Unsettled Bets', to: '/market/unsettled' },
+    { label: 'Declare Result', to: '/market/results', adminOnly: true },
     { label: 'Casino1 Pending Bets', to: '/market/casino-pending' },
     { label: 'Int Casino History', to: '/market/casino-history' },
 ]
