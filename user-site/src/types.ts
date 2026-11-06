@@ -180,3 +180,25 @@ export interface StatementRow {
     debit: number
     balance: number
 }
+
+export interface CasinoTable {
+    id: string
+    name: string
+    category: string
+    provider: string
+    image: string
+    min_bet: number
+    max_bet: number
+    // 0 when the provider does not publish a live headcount
+    players_count: number
+    is_active: boolean
+}
+
+export interface CasinoLaunch {
+    table_id: string
+    table_name: string
+    // The provider's game URL to open in an iframe, or a local demo path
+    launch_url: string
+    token: string | null
+    provider: string
+}

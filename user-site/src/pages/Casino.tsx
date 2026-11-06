@@ -1,19 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '../auth/AuthContext'
 import { usePageTitle } from '../components/Layout'
+import { api } from '../lib/api'
 import { fmtAmount } from '../lib/format'
-
-interface CasinoTable {
-    id: string
-    name: string
-    category: string
-    provider: string
-    image: string
-    min_bet: number
-    max_bet: number
-    players_count: number
-    is_active: boolean
-}
+import type { CasinoLaunch, CasinoTable } from '../types'
 
 const CATEGORIES = [
     { id: 'all', label: 'ALL GAMES' },
@@ -26,32 +16,53 @@ const CATEGORIES = [
     { id: 'poker', label: 'POKER' },
 ]
 
-const PROVIDERS = ['ALL', 'AURA', 'EVOLUTION', 'EZUGI', 'SUPER SPADE']
+// A real provider stream, as opposed to the built-in demo table screen
+const isStreamUrl = (url: string) => /^https?:\/\//i.test(url)
 
 export default function Casino() {
     usePageTitle('Live Casino')
-    const { account } = useAuth()
+    const { account, refresh } = useAuth()
     const [tables, setTables] = useState<CasinoTable[]>([])
+    const [providers, setProviders] = useState<string[]>([])
     const [loading, setLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
     const [selectedProvider, setSelectedProvider] = useState('ALL')
     const [selectedCategory, setSelectedCategory] = useState('all')
+
     const [activeGame, setActiveGame] = useState<CasinoTable | null>(null)
+    const [launch, setLaunch] = useState<CasinoLaunch | null>(null)
+    const [launching, setLaunching] = useState(false)
+    const [launchError, setLaunchError] = useState<string | null>(null)
+
+    // Which providers exist depends on the catalog the backend is serving, so
+    // the filter bar is built from it rather than hard-coded.
+    useEffect(() => {
+        let cancelled = false
+        api.casinoProviders()
+            .then((list) => {
+                if (!cancelled) setProviders(list)
+            })
+            .catch(() => undefined)
+        return () => {
+            cancelled = true
+        }
+    }, [])
 
     useEffect(() => {
         let cancelled = false
         const load = async () => {
             setLoading(true)
             try {
-                const params = new URLSearchParams()
-                if (selectedProvider !== 'ALL') params.set('provider', selectedProvider)
-                if (selectedCategory !== 'all') params.set('category', selectedCategory)
-                const res = await fetch(`/api/v1/player/casino/tables?${params.toString()}`)
-                if (res.ok) {
-                    const data = await res.json()
-                    if (!cancelled) setTables(data)
+                const data = await api.casinoTables({
+                    provider: selectedProvider !== 'ALL' ? selectedProvider : undefined,
+                    category: selectedCategory !== 'all' ? selectedCategory : undefined,
+                })
+                if (!cancelled) {
+                    setTables(data)
+                    setError(null)
                 }
-            } catch {
-                // Ignore or keep previous
+            } catch (e) {
+                if (!cancelled) setError(e instanceof Error ? e.message : 'Could not load the casino tables')
             } finally {
                 if (!cancelled) setLoading(false)
             }
@@ -61,6 +72,30 @@ export default function Casino() {
             cancelled = true
         }
     }, [selectedProvider, selectedCategory])
+
+    const openTable = useCallback(async (table: CasinoTable) => {
+        setActiveGame(table)
+        setLaunch(null)
+        setLaunchError(null)
+        setLaunching(true)
+        try {
+            setLaunch(await api.casinoLaunch(table.id))
+        } catch (e) {
+            setLaunchError(e instanceof Error ? e.message : 'Could not open this table')
+        } finally {
+            setLaunching(false)
+        }
+    }, [])
+
+    const closeTable = useCallback(() => {
+        setActiveGame(null)
+        setLaunch(null)
+        setLaunchError(null)
+        // Bets placed at the table move the balance through the wallet API
+        refresh().catch(() => undefined)
+    }, [refresh])
+
+    const providerChips = ['ALL', ...providers]
 
     return (
         <div className="casino-page">
@@ -73,21 +108,23 @@ export default function Casino() {
             </div>
 
             {/* Providers Filter Bar */}
-            <div className="casino-providers-bar">
-                <span className="filter-label">PROVIDER:</span>
-                <div className="provider-chips">
-                    {PROVIDERS.map((p) => (
-                        <button
-                            key={p}
-                            type="button"
-                            className={`provider-chip ${selectedProvider === p ? 'active' : ''}`}
-                            onClick={() => setSelectedProvider(p)}
-                        >
-                            {p}
-                        </button>
-                    ))}
+            {providerChips.length > 1 && (
+                <div className="casino-providers-bar">
+                    <span className="filter-label">PROVIDER:</span>
+                    <div className="provider-chips">
+                        {providerChips.map((p) => (
+                            <button
+                                key={p}
+                                type="button"
+                                className={`provider-chip ${selectedProvider === p ? 'active' : ''}`}
+                                onClick={() => setSelectedProvider(p)}
+                            >
+                                {p.toUpperCase()}
+                            </button>
+                        ))}
+                    </div>
                 </div>
-            </div>
+            )}
 
             {/* Categories Sub-nav Bar */}
             <div className="casino-categories-bar">
@@ -108,9 +145,13 @@ export default function Casino() {
             {/* Casino Games Grid */}
             <div className="casino-grid">
                 {tables.map((table) => (
-                    <div className="casino-card" key={table.id} onClick={() => setActiveGame(table)}>
+                    <div className="casino-card" key={table.id} onClick={() => openTable(table)}>
                         <div className="casino-card-media">
-                            <img src={table.image} alt={table.name} loading="lazy" />
+                            {table.image ? (
+                                <img src={table.image} alt={table.name} loading="lazy" />
+                            ) : (
+                                <div className="casino-card-noimg">{table.name}</div>
+                            )}
                             <div className="casino-provider-badge">{table.provider}</div>
                             <div className="casino-live-badge">
                                 <span className="live-dot" /> LIVE
@@ -128,7 +169,9 @@ export default function Casino() {
                                 <span className="table-limits">
                                     Min: {fmtAmount(table.min_bet)} - Max: {fmtAmount(table.max_bet)}
                                 </span>
-                                <span className="table-players">🔥 {table.players_count}</span>
+                                {table.players_count > 0 && (
+                                    <span className="table-players">🔥 {table.players_count}</span>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -138,10 +181,14 @@ export default function Casino() {
             {loading && tables.length === 0 && (
                 <div className="loading-state">Loading live casino tables…</div>
             )}
+            {!loading && error && <div className="loading-state">{error}</div>}
+            {!loading && !error && tables.length === 0 && (
+                <div className="loading-state">No live tables are available right now.</div>
+            )}
 
             {/* Live Game Launcher Modal */}
             {activeGame && (
-                <div className="game-modal-backdrop" onClick={() => setActiveGame(null)}>
+                <div className="game-modal-backdrop" onClick={closeTable}>
                     <div className="game-modal-container" onClick={(e) => e.stopPropagation()}>
                         <div className="game-modal-header">
                             <div className="gm-left">
@@ -154,41 +201,63 @@ export default function Casino() {
                                         Bal: <b>{fmtAmount(account.available)}</b>
                                     </span>
                                 )}
-                                <button
-                                    type="button"
-                                    className="gm-close-btn"
-                                    onClick={() => setActiveGame(null)}
-                                >
+                                <button type="button" className="gm-close-btn" onClick={closeTable}>
                                     ✕
                                 </button>
                             </div>
                         </div>
 
                         <div className="game-screen-wrapper">
-                            <div className="game-demo-feed">
-                                <div className="game-live-header">
-                                    <span className="feed-badge">● LIVE DEALER FEED</span>
-                                    <span>TABLE #{activeGame.id}</span>
-                                </div>
-                                <div className="game-center-action">
-                                    <div className="game-dealer-avatar">
-                                        <img src={activeGame.image} alt="Dealer" />
+                            {launching && <div className="loading-state">Opening the table…</div>}
+
+                            {!launching && launchError && (
+                                <div className="game-demo-feed">
+                                    <div className="game-center-action">
+                                        <h3>Table unavailable</h3>
+                                        <p>{launchError}</p>
                                     </div>
-                                    <h3>{activeGame.name}</h3>
-                                    <p>Connected to {activeGame.provider} Live Studio</p>
-                                    <div className="game-status-pill">BETTING OPEN</div>
                                 </div>
-                                <div className="game-quick-chips">
-                                    {[100, 500, 1000, 5000, 25000].map((chip) => (
-                                        <button type="button" key={chip} className="quick-chip-btn">
-                                            ₹{chip >= 1000 ? `${chip / 1000}k` : chip}
-                                        </button>
-                                    ))}
+                            )}
+
+                            {/* The provider's own game, served in an iframe */}
+                            {!launching && launch && isStreamUrl(launch.launch_url) && (
+                                <iframe
+                                    className="game-stream-frame"
+                                    src={launch.launch_url}
+                                    title={activeGame.name}
+                                    allow="autoplay; fullscreen; encrypted-media"
+                                    allowFullScreen
+                                />
+                            )}
+
+                            {/* No provider stream configured yet: the demo table screen */}
+                            {!launching && launch && !isStreamUrl(launch.launch_url) && (
+                                <div className="game-demo-feed">
+                                    <div className="game-live-header">
+                                        <span className="feed-badge">● LIVE DEALER FEED</span>
+                                        <span>TABLE #{activeGame.id}</span>
+                                    </div>
+                                    <div className="game-center-action">
+                                        <div className="game-dealer-avatar">
+                                            <img src={activeGame.image} alt="Dealer" />
+                                        </div>
+                                        <h3>{activeGame.name}</h3>
+                                        <p>Connected to {activeGame.provider} Live Studio</p>
+                                        <div className="game-status-pill">BETTING OPEN</div>
+                                    </div>
+                                    <div className="game-quick-chips">
+                                        {[100, 500, 1000, 5000, 25000].map((chip) => (
+                                            <button type="button" key={chip} className="quick-chip-btn">
+                                                ₹{chip >= 1000 ? `${chip / 1000}k` : chip}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <div className="game-footer-note">
+                                        Demo table. Set CASINO_PROVIDER=live on the backend to serve the
+                                        provider's own stream here.
+                                    </div>
                                 </div>
-                                <div className="game-footer-note">
-                                    Ready for client live stream iframe integration.
-                                </div>
-                            </div>
+                            )}
                         </div>
                     </div>
                 </div>

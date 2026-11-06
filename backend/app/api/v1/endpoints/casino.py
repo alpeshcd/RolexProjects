@@ -1,129 +1,46 @@
-"""Casino API endpoints for live dealer games.
+"""Live casino, as the player site and the panel use it.
 
-Provides tables list, game launch tokens, and webhook callback handlers.
-Ready to plug in the client's external Casino API credentials when provided.
+The table list and the launch URL come from whichever catalog is configured
+(`app.services.casino.catalog`): the built-in demo list, or the client's
+platform via its Operator API. The shapes are the same either way, so the
+player site's casino page does not change when the credentials go in.
+
+The platform's own calls to us — balance, exposure, settlement, rollback —
+are not here; they are the Operator wallet API in `casino_wallet.py`, mounted
+outside /api/v1 at the base URL we hand the platform.
 """
+import logging
 from typing import List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_db, get_player_optional
+from app.api.deps import get_player_optional
 from app.core.config import settings
+from app.core.database import get_db
 from app.models.user import User
-from app.schemas.casino import CasinoLaunchRequest, CasinoLaunchResponse, CasinoTable
+from app.schemas.casino import (
+    CasinoIntegrationStatus,
+    CasinoLaunchRequest,
+    CasinoLaunchResponse,
+    CasinoTable,
+)
+from app.services.casino.catalog import get_catalog
+from app.services.casino.platform import CasinoPlatformError, get_platform
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
-
-# Default catalog of live casino tables matching top Indian/Asian exchange platforms
-CASINO_TABLES: List[dict] = [
-    {
-        "id": "aura-tp-1",
-        "name": "Live Teen Patti 20-20",
-        "category": "teen_patti",
-        "provider": "Aura",
-        "image": "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=400&auto=format&fit=crop&q=80",
-        "min_bet": 100.0,
-        "max_bet": 100000.0,
-        "players_count": 640,
-        "is_active": True,
-    },
-    {
-        "id": "evo-roulette-1",
-        "name": "Lightning Roulette",
-        "category": "roulette",
-        "provider": "Evolution",
-        "image": "https://images.unsplash.com/photo-1606167668584-78701c57f13d?w=400&auto=format&fit=crop&q=80",
-        "min_bet": 100.0,
-        "max_bet": 200000.0,
-        "players_count": 890,
-        "is_active": True,
-    },
-    {
-        "id": "ezugi-ab-1",
-        "name": "Super Andar Bahar Live",
-        "category": "andar_bahar",
-        "provider": "Ezugi",
-        "image": "https://images.unsplash.com/photo-1511193311914-0346f16efe90?w=400&auto=format&fit=crop&q=80",
-        "min_bet": 100.0,
-        "max_bet": 150000.0,
-        "players_count": 520,
-        "is_active": True,
-    },
-    {
-        "id": "aura-dt-1",
-        "name": "Dragon Tiger Fast",
-        "category": "dragon_tiger",
-        "provider": "Aura",
-        "image": "https://images.unsplash.com/photo-1596838132731-3301c3fd4317?w=400&auto=format&fit=crop&q=80",
-        "min_bet": 100.0,
-        "max_bet": 250000.0,
-        "players_count": 410,
-        "is_active": True,
-    },
-    {
-        "id": "evo-bacc-1",
-        "name": "Speed Baccarat A",
-        "category": "baccarat",
-        "provider": "Evolution",
-        "image": "https://images.unsplash.com/photo-1541123437800-1bb1317badc2?w=400&auto=format&fit=crop&q=80",
-        "min_bet": 200.0,
-        "max_bet": 300000.0,
-        "players_count": 380,
-        "is_active": True,
-    },
-    {
-        "id": "ezugi-32cards-1",
-        "name": "32 Cards Live",
-        "category": "teen_patti",
-        "provider": "Ezugi",
-        "image": "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=400&auto=format&fit=crop&q=80",
-        "min_bet": 100.0,
-        "max_bet": 100000.0,
-        "players_count": 290,
-        "is_active": True,
-    },
-    {
-        "id": "aura-lucky7-1",
-        "name": "Lucky 7 Live",
-        "category": "other",
-        "provider": "Aura",
-        "image": "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=400&auto=format&fit=crop&q=80",
-        "min_bet": 100.0,
-        "max_bet": 150000.0,
-        "players_count": 350,
-        "is_active": True,
-    },
-    {
-        "id": "evo-bj-1",
-        "name": "VIP Live Blackjack",
-        "category": "blackjack",
-        "provider": "Evolution",
-        "image": "https://images.unsplash.com/photo-1511193311914-0346f16efe90?w=400&auto=format&fit=crop&q=80",
-        "min_bet": 500.0,
-        "max_bet": 500000.0,
-        "players_count": 210,
-        "is_active": True,
-    },
-    {
-        "id": "super-poker-1",
-        "name": "Casino Hold'em Poker",
-        "category": "poker",
-        "provider": "Super Spade",
-        "image": "https://images.unsplash.com/photo-1541123437800-1bb1317badc2?w=400&auto=format&fit=crop&q=80",
-        "min_bet": 100.0,
-        "max_bet": 100000.0,
-        "players_count": 180,
-        "is_active": True,
-    },
-]
-
-PROVIDERS = ["Aura", "Evolution", "Ezugi", "Super Spade", "Pragmatic Play"]
 
 
 @router.get("/providers", response_model=List[str])
 def get_casino_providers():
-    """List all supported live casino game providers."""
-    return PROVIDERS
+    """The providers present in the current catalog, for the filter bar."""
+    try:
+        return get_catalog().providers()
+    except CasinoPlatformError as exc:
+        logger.warning("Casino providers unavailable: %s", exc)
+        return []
 
 
 @router.get("/tables", response_model=List[CasinoTable])
@@ -131,12 +48,18 @@ def get_casino_tables(
     provider: Optional[str] = Query(None, description="Filter by provider"),
     category: Optional[str] = Query(None, description="Filter by category"),
 ):
-    """List all available casino tables with optional provider/category filters."""
-    tables = CASINO_TABLES
+    """The live tables on offer, with the player site's filters applied."""
+    try:
+        tables = get_catalog().tables()
+    except CasinoPlatformError as exc:
+        # The casino page should say it is empty, not break the whole site.
+        logger.error("Casino table list unavailable: %s", exc)
+        raise HTTPException(status_code=503, detail="Live casino is temporarily unavailable")
+
     if provider and provider.upper() != "ALL":
-        tables = [t for t in tables if t["provider"].lower() == provider.lower()]
+        tables = [t for t in tables if (t.get("provider") or "").lower() == provider.lower()]
     if category and category.upper() != "ALL":
-        tables = [t for t in tables if t["category"].lower() == category.lower()]
+        tables = [t for t in tables if (t.get("category") or "").lower() == category.lower()]
     return tables
 
 
@@ -146,42 +69,57 @@ def launch_casino_table(
     user: Optional[User] = Depends(get_player_optional),
     db: Session = Depends(get_db),
 ):
+    """Open a table.
+
+    On the live catalog this asks the platform for a launch URL, which creates
+    the player there on the fly, and records the `player_session_token` the
+    platform will quote back to us on every wallet call for this session.
     """
-    Generate game launch session URL.
-    When the client provides their Casino API keys and base URL,
-    this endpoint makes the upstream API call to get the real game URL.
-    Currently falls back to interactive demo stream container.
+    try:
+        return CasinoLaunchResponse(**get_catalog().launch(db, user, req.table_id))
+    except CasinoPlatformError as exc:
+        status = exc.status if exc.status in (401, 404) else 502
+        logger.error("Casino launch failed for table %s: %s", req.table_id, exc)
+        raise HTTPException(status_code=status, detail=str(exc))
+
+
+@router.get("/status", response_model=CasinoIntegrationStatus)
+def casino_status():
+    """How the casino link is configured, for the panel's settings screen.
+
+    Reports whether the credentials are in place, never what they are.
     """
-    table = next((t for t in CASINO_TABLES if t["id"] == req.table_id), None)
-    if not table:
-        raise HTTPException(status_code=404, detail="Casino table not found")
+    platform = get_platform()
+    games = 0
+    if (settings.CASINO_PROVIDER or "").lower() == "live":
+        try:
+            games = len(platform.games())
+        except CasinoPlatformError as exc:
+            logger.warning("Casino status could not read the games list: %s", exc)
+    else:
+        games = len(get_catalog().tables())
 
-    username = user.username if user else "demo_player"
-    user_id = str(user.id) if user else "0"
-
-    # Hook for client's real Casino API:
-    # if settings.CASINO_API_URL and settings.CASINO_API_KEY:
-    #     res = requests.post(f"{settings.CASINO_API_URL}/launch", json={...})
-    #     return res.json()
-
-    # Pre-configured launch session
-    launch_url = f"/casino-player.html?tableId={table['id']}&provider={table['provider']}&user={username}&uid={user_id}"
-
-    return CasinoLaunchResponse(
-        table_id=table["id"],
-        table_name=table["name"],
-        launch_url=launch_url,
-        token=f"session-{username}-{table['id']}",
-        provider=table["provider"],
+    valid_until = platform.token_valid_until
+    return CasinoIntegrationStatus(
+        provider=(settings.CASINO_PROVIDER or "mock").lower(),
+        wallet_model=(settings.CASINO_WALLET_MODEL or "exposure").lower(),
+        platform_configured=platform.configured,
+        api_key_configured=bool(settings.CASINO_OPERATOR_API_KEY),
+        wallet_base_path=settings.CASINO_WALLET_BASE_PATH,
+        games_cached=games,
+        token_valid_until=valid_until.isoformat() + "Z" if valid_until else None,
+        last_error=platform.last_error,
     )
 
 
-@router.post("/callback")
-def casino_seamless_wallet_callback(payload: dict, db: Session = Depends(get_db)):
-    """
-    Seamless wallet callback endpoint for live casino provider.
-    Handles debit (bet placed), credit (payout), and rollback.
-    """
-    # Prepared handler for provider's webhook
-    action = payload.get("action")  # e.g., "balance", "debit", "credit"
-    return {"status": "SUCCESS", "message": f"Action '{action}' processed", "balance": 10000.0}
+@router.post("/games/refresh", response_model=List[CasinoTable])
+def refresh_casino_games():
+    """Re-read the platform's games list now, instead of waiting for the cache
+    to lapse. The spec asks for this once or twice a day."""
+    if (settings.CASINO_PROVIDER or "").lower() != "live":
+        return get_catalog().tables()
+    try:
+        get_platform().games(refresh=True)
+    except CasinoPlatformError as exc:
+        raise HTTPException(status_code=502, detail=str(exc))
+    return get_catalog().tables()

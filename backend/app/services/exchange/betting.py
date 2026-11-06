@@ -74,15 +74,42 @@ def open_bets(db: Session, user_ids: Iterable[int]):
     return db.query(Bet).filter(Bet.user_id.in_(list(user_ids)), Bet.status == "open")
 
 
-def exposures(db: Session, user_ids: Iterable[int]) -> dict[int, float]:
+def sports_exposures(db: Session, user_ids: Iterable[int]) -> dict[int, float]:
+    """Worst case across each user's open sports bets, nothing else."""
     by_user: dict[int, list[Bet]] = defaultdict(list)
     for b in open_bets(db, user_ids).order_by(Bet.id).all():
         by_user[b.user_id].append(b)
     return {uid: exposure_of(bs) for uid, bs in by_user.items()}
 
 
+def exposures(db: Session, user_ids: Iterable[int]) -> dict[int, float]:
+    """Everything held against each user's balance: open sports bets plus the
+    exposure a live casino round is holding.
+
+    This is the figure the panel shows and the one the withdrawal and credit
+    guards work from, so money at risk on a casino table can't be paid out or
+    staked twice.
+    """
+    # Local import: the casino wallet asks us for the sports-only figure, so
+    # keeping this inside the call keeps the two modules independent at import
+    # time. `casino_exposure` is a plain query and never calls back here.
+    from app.services.casino.wallet import casino_exposure
+
+    ids = list(user_ids)
+    totals = dict(sports_exposures(db, ids))
+    for uid, held in casino_exposure(db, ids).items():
+        totals[uid] = round(totals.get(uid, 0.0) + held, 2)
+    return totals
+
+
 def user_exposure(db: Session, user: User) -> float:
+    """Total exposure: sports bets and live casino rounds together."""
     return exposures(db, [user.id]).get(user.id, 0.0)
+
+
+def user_sports_exposure(db: Session, user: User) -> float:
+    """Only the sports book's share, for callers that add the casino's themselves."""
+    return sports_exposures(db, [user.id]).get(user.id, 0.0)
 
 
 def event_positions(db: Session, user: User, event_id: int) -> dict[str, dict[str, float]]:
@@ -180,9 +207,14 @@ def place_bet(db: Session, user: User, req) -> Bet:
     if not user.is_active:
         raise BetRejected("Your account is locked")
     current = open_bets(db, [user.id]).order_by(Bet.id).all()
-    if exposure_of(current + [bet]) > (user.balance or 0.0) + 1e-9:
+    # Money a live casino round is holding is not available to stake here
+    from app.services.casino.wallet import user_casino_exposure
+
+    casino_held = user_casino_exposure(db, user)
+    if exposure_of(current + [bet]) + casino_held > (user.balance or 0.0) + 1e-9:
         db.rollback()
-        raise BetRejected(f"Insufficient balance (Available: {(user.balance or 0.0) - exposure_of(current):,.2f})")
+        available = (user.balance or 0.0) - exposure_of(current) - casino_held
+        raise BetRejected(f"Insufficient balance (Available: {available:,.2f})")
     db.add(bet)
     db.commit()
     db.refresh(bet)

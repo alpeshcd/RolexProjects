@@ -2156,6 +2156,31 @@ button, input, select {
     position: relative;
 }
 
+/* The provider's own game, served in an iframe */
+.game-stream-frame {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+    background: #000;
+}
+
+/* Fallback when a provider's game has no thumbnail */
+.casino-card-noimg {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: #cfe6d8;
+    background: radial-gradient(circle at center, #1a3328 0%, #0d1a14 75%);
+}
+
 .game-demo-feed {
     width: 100%;
     height: 100%;

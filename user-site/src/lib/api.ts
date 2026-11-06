@@ -1,4 +1,17 @@
-import type { Account, Bet, EventDetail, ExchangeEvent, LoginResponse, Me, Portal, Side, Sport, StatementRow } from '../types'
+import type {
+    Account,
+    Bet,
+    CasinoLaunch,
+    CasinoTable,
+    EventDetail,
+    ExchangeEvent,
+    LoginResponse,
+    Me,
+    Portal,
+    Side,
+    Sport,
+    StatementRow,
+} from '../types'
 import { portalHost } from './portal'
 
 const BASE = '/api/v1/player'
@@ -103,4 +116,12 @@ export const api = {
     placeBet: (body: PlaceBetBody) => request<{ bet: Bet; account: Account }>('/bets', { method: 'POST', body }),
     bets: (query: { status?: 'open' | 'settled'; event_id?: number }) => request<Bet[]>('/bets', { query }),
     statement: (query: { start_date?: string; end_date?: string }) => request<StatementRow[]>('/statement', { query }),
+
+    // Live casino. The providers list comes from the backend rather than being
+    // hard-coded, so it follows whichever catalog is configured.
+    casinoProviders: () => request<string[]>('/casino/providers'),
+    casinoTables: (query: { provider?: string; category?: string }) =>
+        request<CasinoTable[]>('/casino/tables', { query }),
+    casinoLaunch: (table_id: string) =>
+        request<CasinoLaunch>('/casino/launch', { method: 'POST', body: { table_id } }),
 }
